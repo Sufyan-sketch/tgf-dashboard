@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TGF Weekly Review · Talview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;1,400;1,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#f5f4f0;--s0:#fff;--s1:#f2f1ec;--s2:#e6e5de;--s3:#d0cfc7;
+  --ink:#1a1916;--ink2:#3a3935;--ink3:#6a6960;--ink4:#9a9990;
+  --green:#1d6b3e;--gl:#e6f4ec;--gm:#b8e0c8;--gb:#2d9a5a;
+  --amber:#7a4a00;--al:#fef3e0;--am:#fde0a0;--ab:#d4820a;
+  --red:#8b1c1c;--rl:#fdf0f0;--rm:#f8d0d0;--rb:#c73333;
+  --blue:#1a4a7a;--bl:#eaf2fc;--bm:#c0d9f4;--bb:#2d78c8;
+  --pu:#3d1f7a;--pul:#f0ecfc;--pum:#d4c8f8;
+  --grey:#4a4a46;--gryl:#f0efeb;--grym:#dddcd7;
+  --f-h:'Bricolage Grotesque',sans-serif;--f-m:'DM Mono',monospace;--f-s:'Lora',serif;
+  --r:6px;--r2:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--f-h);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6;min-height:100vh}
+.lock-strip{display:none;position:sticky;top:0;z-index:600;background:#fff3cd;border-bottom:1px solid #f0c040;padding:9px 28px;font-size:12px;font-weight:600;color:#7a4a00;text-align:center;align-items:center;justify-content:center;gap:8px}
+.lock-strip.on{display:flex}
+.topbar{background:var(--s0);border-bottom:1px solid var(--s2);padding:0 24px;display:flex;align-items:stretch;height:52px;position:sticky;top:0;z-index:500}
+.tb-brand{display:flex;align-items:center;gap:9px;padding-right:18px;border-right:1px solid var(--s2);font-size:14px;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
+.bm{width:24px;height:24px;border-radius:5px;background:var(--ink);display:flex;align-items:center;justify-content:center}
+.bm svg{width:13px;height:13px}
+.tb-c{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;overflow:hidden;padding:0 14px}
+.wchip{font-size:11px;color:var(--ink3);background:var(--s1);border:1px solid var(--s2);padding:4px 11px;border-radius:99px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}
+.hbtn{font-size:11px;color:var(--blue);background:var(--bl);border:1px solid var(--bm);padding:4px 11px;border-radius:99px;cursor:pointer;transition:all .15s;white-space:nowrap;font-weight:600}
+.hbtn:hover{background:var(--bm)}
+.tb-r{display:flex;align-items:center;gap:9px;padding-left:14px;border-left:1px solid var(--s2)}
+.clk{font-family:var(--f-m);font-size:12px;color:var(--ink2);background:var(--s1);border:1px solid var(--s2);padding:4px 9px;border-radius:var(--r)}
+.spill{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:99px;border:1px solid;transition:all .3s}
+.spill.live{background:var(--gl);color:var(--green);border-color:var(--gm)}
+.spill.stale{background:var(--al);color:var(--amber);border-color:var(--am)}
+.spill.locked{background:var(--gryl);color:var(--grey);border-color:var(--grym)}
+.pdot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.pdot.live{animation:blink 2s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.fbtn{font-size:11px;font-weight:700;padding:6px 13px;border-radius:var(--r);background:var(--ink);border:none;color:#fff;cursor:pointer;transition:all .15s}
+.fbtn:hover:not(:disabled){background:var(--ink2)}.fbtn:disabled{opacity:.35;cursor:not-allowed}
+.spin{display:inline-block;width:10px;height:10px;border:2px solid rgba(0,0,0,.15);border-top-color:var(--ink2);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.2);z-index:700}.dov.on{display:block}
+.drw{position:fixed;right:0;top:0;bottom:0;width:370px;background:var(--s0);border-left:1px solid var(--s2);z-index:800;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}.drw.on{transform:translateX(0)}
+.dh{padding:15px 17px;border-bottom:1px solid var(--s2);display:flex;align-items:center;justify-content:space-between}
+.dt{font-size:14px;font-weight:700}
+.dx{font-size:17px;color:var(--ink3);cursor:pointer;padding:2px 5px;border-radius:var(--r)}
+.dx:hover{background:var(--s2)}
+.db{flex:1;overflow-y:auto;padding:11px}
+.we{padding:11px 12px;border:1px solid var(--s2);border-radius:var(--r2);margin-bottom:7px;cursor:pointer;transition:all .15s}
+.we:hover{border-color:var(--s3);background:var(--s1)}.we.active{border-color:var(--bm);background:var(--bl)}
+.weq{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.weq.q1{color:var(--blue)}.weq.q2{color:var(--green)}.weq.q3{color:var(--amber)}.weq.q4{color:var(--pu)}
+.wed{font-size:13px;font-weight:600;color:var(--ink)}.wet{font-size:11px;color:var(--ink4);margin-top:1px}
+.wes{display:flex;gap:5px;margin-top:6px}
+.wcp{font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;border:1px solid}
+.wcp-on{background:var(--gl);color:var(--green);border-color:var(--gm)}.wcp-at{background:var(--al);color:var(--ab);border-color:var(--am)}.wcp-off{background:var(--rl);color:var(--rb);border-color:var(--rm)}
+.wrap{max-width:1480px;margin:0 auto;padding:22px 24px 64px}
+.bzone{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.bnr{padding:9px 13px;border-radius:var(--r2);font-size:12px;display:flex;align-items:flex-start;gap:8px;border:1px solid;animation:fdin .25s ease}
+@keyframes fdin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.bnr.info{background:var(--bl);border-color:var(--bm);color:var(--blue)}.bnr.warn{background:var(--al);border-color:var(--am);color:var(--amber)}.bnr.error{background:var(--rl);border-color:var(--rm);color:var(--red)}
+/* filter bar */
+.fbar{background:var(--s0);border:1px solid var(--s2);border-radius:var(--r2);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.flbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);white-space:nowrap}
+.qfbtns{display:flex;gap:5px;flex-wrap:wrap}
+.qfb{font-size:11px;font-weight:600;padding:5px 12px;border-radius:99px;border:1px solid var(--s2);background:var(--s0);color:var(--ink2);cursor:pointer;transition:all .15s}
+.qfb:hover{background:var(--s1);border-color:var(--s3)}.qfb.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.fdiv{width:1px;height:22px;background:var(--s2)}
+.cmptgl{font-size:11px;font-weight:600;padding:5px 12px;border-radius:99px;border:1px solid var(--bm);background:var(--bl);color:var(--blue);cursor:pointer;transition:all .15s;white-space:nowrap}
+.cmptgl:hover{background:var(--bm)}.cmptgl.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+/* scorecard */
+.scrow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 240px;gap:11px;margin-bottom:18px}
+.sc{background:var(--s0);border:1px solid var(--s2);border-radius:var(--r2);padding:14px 16px;display:flex;flex-direction:column;gap:3px}
+.sc-l{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.sc-n{font-size:32px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.sc-s{font-size:11px;color:var(--ink4)}
+.sc.s-on{background:var(--gl);border-color:var(--gm)}.sc.s-at{background:var(--al);border-color:var(--am)}.sc.s-off{background:var(--rl);border-color:var(--rm)}
+.sc.s-on .sc-l,.sc.s-on .sc-n{color:var(--green)}.sc.s-at .sc-l{color:var(--amber)}.sc.s-at .sc-n{color:var(--ab)}.sc.s-off .sc-l,.sc.s-off .sc-n{color:var(--rb)}
+.snapp{background:var(--ink);border-radius:var(--r2);padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;gap:5px}
+.sp-r{display:flex;flex-direction:column;gap:1px}
+.sp-l{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.sp-v{font-family:var(--f-m);font-size:11px;color:rgba(255,255,255,.85)}
+.sp-d{height:1px;background:rgba(255,255,255,.08)}
+/* compare panel */
+.cmp-panel{background:var(--pul);border:1px solid var(--pum);border-radius:var(--r2);padding:14px 18px;margin-bottom:18px;display:none}
+.cmp-panel.show{display:block}
+.cmp-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cmp-title{font-size:13px;font-weight:700;color:var(--pu)}
+.cmp-sels{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+select.csel{font-family:var(--f-h);font-size:12px;padding:6px 10px;border-radius:var(--r);border:1px solid var(--s2);background:var(--s0);color:var(--ink2);cursor:pointer}
+.cmp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
+.cc{background:var(--s0);border:1px solid var(--pum);border-radius:var(--r);padding:10px 12px}
+.cc-n{font-size:11px;color:var(--ink3);margin-bottom:4px;font-weight:500}
+.cc-row{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.cc-a{font-size:14px;font-weight:700}.cc-b{font-size:12px;color:var(--ink4)}
+.ccd{font-size:10px;font-weight:600;padding:1px 5px;border-radius:99px}
+.cd-up{background:var(--gl);color:var(--green)}.cd-dn{background:var(--rl);color:var(--rb)}.cd-fl{background:var(--gryl);color:var(--grey)}
+/* wins ribbon */
+.wr{background:var(--gl);border:1px solid var(--gm);border-radius:var(--r2);padding:14px 18px;margin-bottom:20px}
+.wr-h{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.wr-i{width:26px;height:26px;border-radius:var(--r);background:var(--gm);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:12px}
+.wr-t{font-size:13px;font-weight:700;color:var(--green)}
+.wr-s{font-size:11px;color:var(--green);opacity:.7;margin-left:auto;font-family:var(--f-s);font-style:italic}
+.wrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:7px}
+.wchp{background:var(--s0);border:1px solid var(--gm);border-radius:var(--r);padding:9px 11px}
+.wcn{font-size:11px;color:var(--ink2);font-weight:500;margin-bottom:2px}
+.wcv{font-size:15px;font-weight:700;color:var(--green)}
+.wct{font-size:10px;font-weight:600;margin-top:2px}
+.t-up{color:var(--green)}.t-dn{color:var(--rb)}.t-fl{color:var(--ink4)}
+/* trends */
+.trsec{margin-top:24px}
+.tr-h{display:flex;align-items:center;gap:10px;padding-bottom:11px;border-bottom:2px solid var(--s2);margin-bottom:14px}
+.tr-t{font-size:15px;font-weight:700}
+.tr-s{font-size:11px;color:var(--ink4);font-family:var(--f-s);font-style:italic}
+.chgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.chcard{background:var(--s0);border:1px solid var(--s2);border-radius:var(--r2);padding:14px 16px}
+.chh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.chn{font-size:12px;font-weight:600;color:var(--ink)}
+.fn{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:99px;border:1px solid}
+.fn-cs{background:var(--bl);color:var(--blue);border-color:var(--bm)}.fn-ts{background:var(--gl);color:var(--green);border-color:var(--gm)}.fn-ms{background:var(--pul);color:var(--pu);border-color:var(--pum)}.fn-pm{background:var(--gryl);color:var(--grey);border-color:var(--grym)}
+.chw{position:relative;height:120px}
+/* section */
+.sec{margin-top:26px}
+.sechdr{display:flex;align-items:center;gap:11px;padding-bottom:11px;border-bottom:2px solid var(--s2);margin-bottom:13px}
+.seci{width:30px;height:30px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.seci.cs{background:var(--bl)}.seci.ts{background:var(--gl)}.seci.ms{background:var(--pul)}
+.sect{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.secs{font-size:11px;color:var(--ink4);margin-top:1px}
+.secpills{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap}
+.sp2{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:99px;border:1px solid}
+.sp2-on{background:var(--gl);color:var(--green);border-color:var(--gm)}.sp2-at{background:var(--al);color:var(--ab);border-color:var(--am)}.sp2-off{background:var(--rl);color:var(--rb);border-color:var(--rm)}.sp2-na{background:var(--gryl);color:var(--grey);border-color:var(--grym)}
+/* metric cards */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(315px,1fr));gap:10px}
+.mcard{background:var(--s0);border:1px solid var(--s2);border-radius:var(--r2);overflow:hidden;transition:box-shadow .2s,border-color .2s}
+.mcard:hover{box-shadow:0 2px 12px rgba(0,0,0,.07);border-color:var(--s3)}
+.mcard::before{content:'';display:block;height:3px}
+.mcard.c-on::before{background:var(--gb)}.mcard.c-at::before{background:var(--ab)}.mcard.c-off::before{background:var(--rb)}.mcard.c-na::before{background:var(--s3)}
+.ctop{padding:12px 14px 10px}
+.cr1{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;margin-bottom:9px}
+.cname{font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;flex:1}
+.sbadge{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:99px;border:1px solid;flex-shrink:0;margin-top:2px}
+.sb-on{background:var(--gl);color:var(--green);border-color:var(--gm)}.sb-at{background:var(--al);color:var(--ab);border-color:var(--am)}.sb-off{background:var(--rl);color:var(--rb);border-color:var(--rm)}.sb-na{background:var(--gryl);color:var(--grey);border-color:var(--grym)}
+.tvg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.tvb label{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink4);display:block;margin-bottom:2px}
+.tvv{font-size:16px;font-weight:700;line-height:1.15;color:var(--ink)}
+.tvv.vg{color:var(--green)}.tvv.vw{color:var(--ab)}.tvv.vb{color:var(--rb)}.tvv.vn{color:var(--ink4);font-size:12px;font-weight:400;font-family:var(--f-s);font-style:italic}
+.pbw{margin-bottom:8px}
+.pbbg{height:4px;background:var(--s2);border-radius:2px;overflow:hidden}
+.pbf{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.pbm{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.pbp{font-family:var(--f-m);font-size:11px;font-weight:500}
+.pbt{font-size:11px}
+.cfrow{display:flex;align-items:center;gap:5px}
+.cpips{display:flex;gap:3px}.cpip{width:15px;height:3px;border-radius:2px;background:var(--s2)}
+.clbl{font-size:10px;color:var(--ink4)}.lqtxt{font-size:10px;color:var(--ink4);margin-left:auto;font-family:var(--f-m)}
+.cins{padding:8px 14px 11px;border-top:1px solid var(--s1);display:flex;gap:6px;align-items:flex-start;background:var(--s1)}
+.cii{width:14px;height:14px;border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.ci-ok{background:var(--gm);color:var(--green)}.ci-warn{background:var(--am);color:var(--amber)}.ci-bad{background:var(--rm);color:var(--red)}.ci-na{background:var(--grym);color:var(--grey)}
+.cit{font-size:11px;color:var(--ink2);line-height:1.6}
+/* qvq */
+.qvq{margin-top:22px;background:var(--s0);border:1px solid var(--s2);border-radius:var(--r2);overflow:hidden}
+.qvqh{display:flex;align-items:center;gap:11px;padding:12px 18px;border-bottom:1px solid var(--s2);background:var(--s1)}
+.qvqt{font-size:13px;font-weight:700}
+.qvqs{font-size:11px;color:var(--ink4);font-family:var(--f-s);font-style:italic;margin-left:auto}
+.qvqrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr))}
+.qvqcell{padding:10px 13px;border-right:1px solid var(--s1);border-bottom:1px solid var(--s1)}
+.qvqcn{font-size:10px;color:var(--ink3);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qvqcurr{font-size:14px;font-weight:700}
+.qvqvs{display:flex;align-items:center;gap:4px;margin-top:2px}
+.qvqlast{font-size:10px;color:var(--ink4);font-family:var(--f-m)}
+.qvqd{font-size:10px;font-weight:600;padding:1px 5px;border-radius:99px}
+.d-up{background:var(--gl);color:var(--green)}.d-dn{background:var(--rl);color:var(--rb)}.d-fl{background:var(--gryl);color:var(--grey)}
+/* insights */
+.insec{margin-top:22px}
+.iehdr{display:flex;align-items:center;gap:9px;margin-bottom:12px;padding-bottom:11px;border-bottom:2px solid var(--s2)}
+.iet{font-size:15px;font-weight:700}.ies{font-size:11px;color:var(--ink4);font-family:var(--f-s);font-style:italic}
+.iegrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.iepanel{background:var(--s0);border:1px solid var(--s2);border-radius:var(--r2);overflow:hidden}
+.ieph{padding:11px 15px;border-bottom:1px solid var(--s1);display:flex;align-items:center;gap:7px}
+.iept{font-size:12px;font-weight:700}.iepc{font-size:11px;color:var(--ink4);margin-left:auto}
+.ieitem{padding:10px 15px;border-bottom:1px solid var(--s1);transition:background .15s}
+.ieitem:last-child{border-bottom:none}.ieitem:hover{background:var(--s1)}
+.ietag{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 7px;border-radius:99px;display:inline-block;margin-bottom:3px}
+.it-win{background:var(--gl);color:var(--green);border:1px solid var(--gm)}.it-foc{background:var(--al);color:var(--ab);border:1px solid var(--am)}.it-off{background:var(--rl);color:var(--rb);border:1px solid var(--rm)}
+.iein{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.ieix{font-size:11px;color:var(--ink2);line-height:1.6}
+.ieia{margin-top:5px;padding-top:5px;border-top:1px solid var(--s2);font-size:11px;color:var(--blue);font-weight:500}
+/* ibar */
+.ibar{display:none;background:var(--al);border:1px solid var(--am);border-radius:var(--r2);padding:11px 14px;margin-bottom:14px}
+.ibar.show{display:block}
+.ibh{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--amber);margin-bottom:7px}
+.itags{display:flex;flex-wrap:wrap;gap:5px}
+.itag{font-size:11px;background:var(--am);color:var(--amber);padding:3px 9px;border-radius:99px;border:1px solid rgba(122,74,0,.15)}
+.dash-footer{margin-top:32px;padding-top:13px;border-top:1px solid var(--s2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px}
+.df-l{font-family:var(--f-s);font-size:13px;font-style:italic;color:var(--ink4)}
+.df-r{font-size:11px;color:var(--ink4);text-align:right}
+@media(max-width:920px){.scrow{grid-template-columns:repeat(2,1fr)}.snapp{grid-column:1/-1}.mgrid,.iegrid,.chgrid{grid-template-columns:1fr}.wrap{padding:14px 12px 48px}.topbar{padding:0 12px}.drw{width:100vw}}
+
+/* ── PASSWORD GATE ── */
+.pg-overlay{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.pg-box{background:var(--s0);border:1px solid var(--s2);border-radius:16px;padding:48px 44px;width:100%;max-width:400px;text-align:center;box-shadow:0 8px 48px rgba(0,0,0,0.08)}
+.pg-logo{width:44px;height:44px;border-radius:10px;background:var(--ink);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.pg-logo svg{width:22px;height:22px}
+.pg-title{font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--ink);margin-bottom:6px}
+.pg-sub{font-size:13px;color:var(--ink4);margin-bottom:32px;font-family:var(--f-s);font-style:italic}
+.pg-input-wrap{position:relative;margin-bottom:12px}
+.pg-input{width:100%;padding:12px 44px 12px 14px;border:1.5px solid var(--s2);border-radius:var(--r2);font-family:var(--f-h);font-size:14px;color:var(--ink);background:var(--s0);outline:none;transition:border-color .15s;letter-spacing:.08em}
+.pg-input:focus{border-color:var(--ink)}
+.pg-input.shake{animation:shake .35s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.pg-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--ink4);font-size:16px;user-select:none;transition:color .15s}
+.pg-eye:hover{color:var(--ink2)}
+.pg-btn{width:100%;padding:12px;border-radius:var(--r2);background:var(--ink);border:none;color:#fff;font-family:var(--f-h);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;margin-bottom:16px}
+.pg-btn:hover{background:var(--ink2)}
+.pg-btn:active{transform:scale(.98)}
+.pg-error{font-size:12px;color:var(--rb);margin-bottom:12px;min-height:18px;transition:opacity .2s}
+.pg-footer{font-size:11px;color:var(--ink5,#c8c7c2);margin-top:24px;padding-top:16px;border-top:1px solid var(--s2)}
+</style>
+</head>
+<body>
+
+<!-- ── PASSWORD GATE ── -->
+<div class="pg-overlay" id="pg-overlay">
+  <div class="pg-box">
+    <div class="pg-logo">
+      <svg viewBox="0 0 22 22" fill="none"><path d="M3 11h16M11 3v16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </div>
+    <div class="pg-title">TGF Weekly Review</div>
+    <div class="pg-sub">Talview · Leadership Dashboard</div>
+    <div class="pg-input-wrap">
+      <input class="pg-input" type="password" id="pg-pw" placeholder="Enter access password" onkeydown="if(event.key==='Enter')pgSubmit()" autocomplete="current-password"/>
+      <span class="pg-eye" id="pg-eye" onclick="pgToggleEye()">👁</span>
+    </div>
+    <div class="pg-error" id="pg-err"></div>
+    <button class="pg-btn" onclick="pgSubmit()">Access Dashboard</button>
+    <div class="pg-footer">Access restricted to authorised Talview personnel only.<br>Sessions are remembered for 7 days.</div>
+  </div>
+</div>
+<!-- ── END PASSWORD GATE ── -->
+
+ id="ls">🔒 Dashboard locked · 1:30 PM IST · Official TGF record for this week</div>
+
+<div class="topbar">
+  <div class="tb-brand">
+    <div class="bm"><svg viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2v10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+    TGF Review
+  </div>
+  <div class="tb-c">
+    <div class="wchip" id="wchip">Loading…</div>
+    <div class="hbtn" onclick="openDrw()">📅 History</div>
+  </div>
+  <div class="tb-r">
+    <div class="clk" id="clk">--:--:-- IST</div>
+    <div class="spill stale" id="spill"><span class="pdot"></span><span id="stxt">Loading</span></div>
+    <button class="fbtn" id="fbtn" onclick="doFetch()">Refresh</button>
+  </div>
+</div>
+
+<div class="dov" id="dov" onclick="closeDrw()"></div>
+<div class="drw" id="drw">
+  <div class="dh"><div class="dt">All Quarters</div><div class="dx" onclick="closeDrw()">✕</div></div>
+  <div class="db" id="drwbody"><div style="padding:22px;text-align:center;color:var(--ink4);font-size:12px">Loading…</div></div>
+</div>
+
+<div class="wrap">
+  <div class="bzone" id="bzone"></div>
+  <div class="ibar" id="ibar"><div class="ibh">⚠ Data Completeness Notice</div><div class="itags" id="itags"></div></div>
+
+  <div class="fbar">
+    <span class="flbl">Quarter</span>
+    <div class="qfbtns" id="qfbtns">
+      <button class="qfb" onclick="setFilter('Q4-2024',this)">Q4 2024</button>
+      <button class="qfb" onclick="setFilter('Q1-2025',this)">Q1 2025</button>
+      <button class="qfb" onclick="setFilter('Q2-2025',this)">Q2 2025</button>
+      <button class="qfb" onclick="setFilter('Q3-2025',this)">Q3 2025</button>
+      <button class="qfb" onclick="setFilter('Q4-2025',this)">Q4 2025</button>
+      <button class="qfb active" onclick="setFilter('Q1-2026',this)">Q1 2026 ← Current</button>
+    </div>
+    <div class="fdiv"></div>
+    <button class="cmptgl" id="cmptgl" onclick="toggleCompare()">⇄ Compare Quarters</button>
+  </div>
+
+  <div class="scrow">
+    <div class="sc"><div class="sc-l">Overall Health</div><div class="sc-n" id="hnum" style="color:var(--ink3)">—</div><div class="sc-s" id="hsub">Awaiting data</div></div>
+    <div class="sc s-on"><div class="sc-l">On Track</div><div class="sc-n" id="son">—</div><div class="sc-s" id="sond">metrics</div></div>
+    <div class="sc s-at"><div class="sc-l">Needs Attention</div><div class="sc-n" id="sat">—</div><div class="sc-s" id="satd">metrics</div></div>
+    <div class="sc s-off"><div class="sc-l">Behind Target</div><div class="sc-n" id="soff">—</div><div class="sc-s" id="soffd">metrics</div></div>
+    <div class="snapp">
+      <div class="sp-r"><div class="sp-l">Viewing</div><div class="sp-v" id="spq">—</div></div>
+      <div class="sp-d"></div>
+      <div class="sp-r"><div class="sp-l">Date</div><div class="sp-v" id="spdate">—</div></div>
+      <div class="sp-d"></div>
+      <div class="sp-r"><div class="sp-l">Auto-fetch</div><div class="sp-v">Thu 1:05 PM IST</div></div>
+    </div>
+  </div>
+
+  <div class="cmp-panel" id="cmpp">
+    <div class="cmp-head"><span style="font-size:15px">⇄</span><div class="cmp-title">Side-by-Side Quarter Comparison</div></div>
+    <div class="cmp-sels">
+      <select class="csel" id="cmpa" onchange="renderCmp()"><option value="">Quarter A…</option></select>
+      <span style="font-size:17px;color:var(--ink3);align-self:center">vs</span>
+      <select class="csel" id="cmpb" onchange="renderCmp()"><option value="">Quarter B…</option></select>
+    </div>
+    <div class="cmp-grid" id="cmpgrid"></div>
+  </div>
+
+  <div class="trsec" id="trsec">
+    <div class="tr-h"><div class="tr-t">Performance Trends</div><div class="tr-s">Quarter-end results · Q4 2024 → Q1 2026</div></div>
+    <div class="chgrid" id="chgrid"></div>
+  </div>
+
+  <div class="wr" id="wrr" style="display:none">
+    <div class="wr-h"><div class="wr-i">✦</div><div class="wr-t">This Quarter's Wins</div><div class="wr-s">Metrics at or above target</div></div>
+    <div class="wrgrid" id="wrgrid"></div>
+  </div>
+
+  <div id="mroot"><div style="padding:50px;text-align:center;color:var(--ink4);font-size:13px"><span class="spin" style="border-color:rgba(0,0,0,.1);border-top-color:var(--ink3)"></span> Loading…</div></div>
+
+  <div class="qvq" id="qvq" style="display:none">
+    <div class="qvqh"><div class="qvqt">Quarter-on-Quarter Snapshot</div><div class="qvqs" id="qvqsub">vs previous quarter</div></div>
+    <div class="qvqrow" id="qvqrow"></div>
+  </div>
+
+  <div class="insec" id="insec" style="display:none">
+    <div class="iehdr"><div class="iet">Team Insights</div><div class="ies">Wins celebrated · Focus areas surfaced · Actions suggested</div></div>
+    <div class="iegrid">
+      <div class="iepanel"><div class="ieph"><span style="font-size:14px">✦</span><span class="iept" style="color:var(--green)">Strengths & Wins</span><span class="iepc" id="wincnt"></span></div><div id="winlist"></div></div>
+      <div class="iepanel"><div class="ieph"><span style="font-size:14px">◎</span><span class="iept" style="color:var(--ab)">Focus Areas</span><span class="iepc" id="foccnt"></span></div><div id="foclist"></div></div>
+    </div>
+  </div>
+
+  <div class="dash-footer">
+    <div class="df-l">Talview TGF · Thursday Weekly Review · Q4 2024 – Q1 2026 history loaded</div>
+    <div class="df-r" id="dfr">Auto-fetch 1:05 PM IST · Hard lock 1:30 PM IST</div>
+  </div>
+</div>
+
+<script>
+/* ═══════════ HISTORICAL DATA — 5 quarters from Notion ═══════════ */
+const H={
+  'Q4-2024':{label:'Q4 2024',date:'2024-12-31',pageTitle:'31-Dec-24 End of Quarter',metrics:[
+    {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'100%',tV:100,type:'pct',current:'95%',cV:95,lq:'—',lqV:null,conf:1},
+    {id:'revenue-expansion',name:'Revenue Expansion',fn:'CS',target:'$200K',tV:200000,type:'financial',current:'$306K (153%)',cV:305892,lq:'—',lqV:null,conf:1},
+    {id:'qbr',name:'QBR Coverage',fn:'CS',target:'20 QBRs',tV:20,type:'pct',current:'25 QBRs (125%)',cV:125,lq:'—',lqV:null,conf:1},
+    {id:'gm',name:'Gross Margin',fn:'MS',target:'75%',tV:75,type:'pct',current:'73%',cV:73,lq:'—',lqV:null,conf:0.9},
+    {id:'proctor',name:'Proctor Utilisation',fn:'MS',target:'85%',tV:85,type:'pct',current:'90%',cV:90,lq:'—',lqV:null,conf:1},
+    {id:'ticket-sla',name:'Ticket SLA',fn:'TS',target:'100%',tV:100,type:'pct',current:'94.3%',cV:94.3,lq:'—',lqV:null,conf:1},
+    {id:'qa',name:'Quality of Resolution',fn:'TS',target:'90%',tV:90,type:'pct',current:'88%',cV:88,lq:'—',lqV:null,conf:1},
+    {id:'automation',name:'Automation Rate',fn:'TS',target:'70%',tV:70,type:'pct',current:'70%',cV:70,lq:'—',lqV:null,conf:1},
+    {id:'golive',name:'Go Live SLA',fn:'CS',target:'90%',tV:90,type:'pct',current:'0% (in progress)',cV:0,lq:'—',lqV:null,conf:0.3},
+  ]},
+  'Q1-2025':{label:'Q1 2025',date:'2025-03-21',pageTitle:'21-Mar-25 Q1 2025 Retrospection',metrics:[
+    {id:'net-expansion',name:'Net Expansion',fn:'CS',target:'$250K',tV:250000,type:'financial',current:'$21.7K (8.6%)',cV:21711,lq:'$306K (Q4)',lqV:305892,conf:1},
+    {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'95%',tV:95,type:'pct',current:'100%',cV:100,lq:'95% (Q4)',lqV:95,conf:1},
+    {id:'qbr',name:'QBR Coverage',fn:'CS',target:'60%',tV:60,type:'pct',current:'53%',cV:53,lq:'125% (Q4)',lqV:125,conf:0.9},
+    {id:'adoption',name:'True Adoption',fn:'CS',target:'50%',tV:50,type:'pct',current:'26.7%',cV:26.7,lq:'—',lqV:null,conf:0.9},
+    {id:'automation',name:'Bot Automation',fn:'TS',target:'75%',tV:75,type:'pct',current:'78%',cV:78,lq:'70% (Q4)',lqV:70,conf:1},
+    {id:'gm',name:'Gross Margin',fn:'MS',target:'70%',tV:70,type:'pct',current:'62%',cV:62,lq:'73% (Q4)',lqV:73,conf:1},
+    {id:'pipeline',name:'Expansion Pipeline',fn:'CS',target:'$1M',tV:1000000,type:'financial',current:'$1.25M (125%)',cV:1251248,lq:'—',lqV:null,conf:1},
+    {id:'golive',name:'Go Live SLA',fn:'CS',target:'90%',tV:90,type:'pct',current:'100%',cV:100,lq:'0% (Q4)',lqV:0,conf:1},
+  ]},
+  'Q2-2025':{label:'Q2 2025',date:'2025-06-19',pageTitle:'19-Jun-25 Q2 TGF Retro',metrics:[
+    {id:'net-expansion',name:'Net Expansion',fn:'CS',target:'$550K',tV:550000,type:'financial',current:'$437K (79.5%)',cV:437000,lq:'$21.7K (Q1)',lqV:21711,conf:1},
+    {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'95%',tV:95,type:'pct',current:'100%',cV:100,lq:'100% (Q1)',lqV:100,conf:1},
+    {id:'qbr',name:'QBR Coverage',fn:'CS',target:'60%',tV:60,type:'pct',current:'60%',cV:60,lq:'53% (Q1)',lqV:53,conf:1},
+    {id:'adoption',name:'True Adoption',fn:'CS',target:'50%',tV:50,type:'pct',current:'35%',cV:35,lq:'26.7% (Q1)',lqV:26.7,conf:1},
+    {id:'automation',name:'TS Automation',fn:'TS',target:'45%',tV:45,type:'pct',current:'32%',cV:32,lq:'78% (Q1)',lqV:78,conf:1},
+    {id:'gm',name:'Gross Margin',fn:'MS',target:'70%',tV:70,type:'pct',current:'65%',cV:65,lq:'62% (Q1)',lqV:62,conf:1},
+    {id:'pipeline',name:'Expansion Pipeline',fn:'CS',target:'$1M',tV:1000000,type:'financial',current:'$754K (75.4%)',cV:754000,lq:'$1.25M (Q1)',lqV:1251248,conf:1},
+    {id:'golive',name:'Go Live SLA',fn:'CS',target:'95%',tV:95,type:'pct',current:'71.4%',cV:71.4,lq:'100% (Q1)',lqV:100,conf:1},
+  ]},
+  'Q3-2025':{label:'Q3 2025',date:'2025-09-24',pageTitle:'24-Sep-25 Q3 TGF Retro',metrics:[
+    {id:'net-expansion',name:'Net Expansion',fn:'CS',target:'$400K',tV:400000,type:'financial',current:'$63.8K (16%)',cV:63846,lq:'$437K (Q2)',lqV:437000,conf:1},
+    {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'95%',tV:95,type:'pct',current:'~95%',cV:95,lq:'100% (Q2)',lqV:100,conf:0.7},
+    {id:'qbr',name:'QBR Coverage',fn:'CS',target:'60%',tV:60,type:'pct',current:'~55%',cV:55,lq:'60% (Q2)',lqV:60,conf:0.6},
+    {id:'adoption',name:'True Adoption',fn:'CS',target:'50%',tV:50,type:'pct',current:'32.1%',cV:32.1,lq:'35% (Q2)',lqV:35,conf:1},
+    {id:'csat',name:'CSAT',fn:'TS',target:'≥ 4.1',tV:4.1,type:'score',current:'3.9',cV:3.9,lq:'—',lqV:null,conf:1},
+    {id:'lifecycle',name:'Resolution Time',fn:'TS',target:'≤ 60h',tV:60,type:'time',current:'9h 39m',cV:9.65,lq:'—',lqV:null,conf:1},
+    {id:'qa',name:'QA Score',fn:'TS',target:'≥ 85%',tV:85,type:'pct',current:'83%',cV:83,lq:'—',lqV:null,conf:1},
+    {id:'automation',name:'Bot Accuracy',fn:'TS',target:'≥ 98%',tV:98,type:'pct',current:'97%',cV:97,lq:'32% (Q2)',lqV:32,conf:1},
+    {id:'gm',name:'Gross Margin',fn:'MS',target:'75%',tV:75,type:'pct',current:'48%',cV:48,lq:'65% (Q2)',lqV:65,conf:1},
+    {id:'pipeline',name:'Expansion Pipeline',fn:'CS',target:'$600K',tV:600000,type:'financial',current:'$1.1M (139%)',cV:1100000,lq:'$754K (Q2)',lqV:754000,conf:1},
+    {id:'golive',name:'Go Live SLA',fn:'CS',target:'100%',tV:100,type:'pct',current:'78.5%',cV:78.5,lq:'71.4% (Q2)',lqV:71.4,conf:1},
+  ]},
+  'Q4-2025':{label:'Q4 2025',date:'2026-01-01',pageTitle:'1-Jan-26 Q4 Quarter End',metrics:[
+    {id:'net-expansion',name:'Net Expansion',fn:'CS',target:'$350K',tV:350000,type:'financial',current:'$433K (124%)',cV:433000,lq:'$63.8K (Q3)',lqV:63846,conf:1},
+    {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'95%',tV:95,type:'pct',current:'95.4%',cV:95.4,lq:'95% (Q3)',lqV:95,conf:1},
+    {id:'qbr',name:'QBR Coverage',fn:'CS',target:'60%',tV:60,type:'pct',current:'77% (17/22)',cV:77,lq:'55% (Q3)',lqV:55,conf:1},
+    {id:'adoption',name:'True Adoption',fn:'CS',target:'50%',tV:50,type:'pct',current:'35.4%',cV:35.4,lq:'32.1% (Q3)',lqV:32.1,conf:1},
+    {id:'csat',name:'CSAT',fn:'TS',target:'≥ 4.1',tV:4.1,type:'score',current:'3.97',cV:3.97,lq:'3.9 (Q3)',lqV:3.9,conf:1},
+    {id:'lifecycle',name:'Resolution Time',fn:'TS',target:'≤ 36h',tV:36,type:'time',current:'10h 45m',cV:10.75,lq:'9h 39m (Q3)',lqV:9.65,conf:1},
+    {id:'qa',name:'QA Score',fn:'TS',target:'≥ 85%',tV:85,type:'pct',current:'85%',cV:85,lq:'83% (Q3)',lqV:83,conf:1},
+    {id:'automation',name:'Bot Accuracy',fn:'TS',target:'≥ 98%',tV:98,type:'pct',current:'99%',cV:99,lq:'97% (Q3)',lqV:97,conf:1},
+    {id:'governance',name:'Operational Governance',fn:'TS',target:'100%',tV:100,type:'pct',current:'100%',cV:100,lq:'98% (Q3)',lqV:98,conf:1},
+    {id:'gm',name:'Gross Margin',fn:'MS',target:'75%',tV:75,type:'pct',current:'69%',cV:69,lq:'48% (Q3)',lqV:48,conf:1},
+    {id:'pipeline',name:'Expansion Pipeline',fn:'CS',target:'$1M',tV:1000000,type:'financial',current:'$4.48M (448%)',cV:4480000,lq:'$1.1M (Q3)',lqV:1100000,conf:1},
+    {id:'golive',name:'Go Live SLA',fn:'CS',target:'100%',tV:100,type:'pct',current:'100%',cV:100,lq:'78.5% (Q3)',lqV:78.5,conf:1},
+  ]},
+  'Q1-2026':{label:'Q1 2026',date:'2026-01-08',pageTitle:'8-Jan-26 Q1 TGF (Current)',metrics:[
+    {id:'net-expansion',name:'Net Expansion',fn:'CS',target:'$350K',tV:350000,type:'financial',current:'$5K',cV:5000,lq:'$433K (Q4)',lqV:433000,conf:0.6},
+    {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'95%',tV:95,type:'pct',current:'100%',cV:100,lq:'95.4% (Q4)',lqV:95.4,conf:1},
+    {id:'qbr',name:'QBR Coverage',fn:'CS',target:'60%',tV:60,type:'pct',current:'0%',cV:0,lq:'77% (Q4)',lqV:77,conf:0.8},
+    {id:'adoption',name:'True Adoption',fn:'CS',target:'50%',tV:50,type:'pct',current:null,cV:null,lq:'35.4% (Q4)',lqV:35.4,conf:0},
+    {id:'pipeline',name:'Expansion Pipeline',fn:'CS',target:'$1M',tV:1000000,type:'financial',current:'$730K',cV:730000,lq:'$4.48M (Q4)',lqV:4480000,conf:1},
+    {id:'golive',name:'Go Live SLA',fn:'CS',target:'100%',tV:100,type:'milestone',current:'In Progress',cV:null,lq:'100% (Q4)',lqV:100,conf:0.5},
+    {id:'csat',name:'CSAT',fn:'TS',target:'≥ 4.1',tV:4.1,type:'score',current:'4.0',cV:4.0,lq:'3.97 (Q4)',lqV:3.97,conf:0.95},
+    {id:'lifecycle',name:'Resolution Time',fn:'TS',target:'≤ 36h',tV:36,type:'time',current:'8h 5m',cV:8.08,lq:'10h 45m (Q4)',lqV:10.75,conf:1},
+    {id:'qa',name:'QA Score',fn:'TS',target:'≥ 85%',tV:85,type:'pct',current:'83%',cV:83,lq:'85% (Q4)',lqV:85,conf:0.9},
+    {id:'automation',name:'Bot Accuracy',fn:'TS',target:'≥ 98%',tV:98,type:'pct',current:'99%',cV:99,lq:'99% (Q4)',lqV:99,conf:0.7},
+    {id:'governance',name:'Operational Governance',fn:'TS',target:'100%',tV:100,type:'pct',current:'100%',cV:100,lq:'100% (Q4)',lqV:100,conf:1},
+    {id:'gm',name:'Gross Margin',fn:'MS',target:'75%',tV:75,type:'pct',current:'~68%',cV:68,lq:'69% (Q4)',lqV:69,conf:0.65},
+  ]},
+};
+const QO=['Q4-2024','Q1-2025','Q2-2025','Q3-2025','Q4-2025','Q1-2026'];
+const QC={'Q4-2024':'#1a4a7a','Q1-2025':'#2d78c8','Q2-2025':'#1d6b3e','Q3-2025':'#d4820a','Q4-2025':'#6b48d4','Q1-2026':'#c73333'};
+
+const INS={
+  'net-expansion':{win:null,foc:'Q1 is early. Current activity shows $5K confirmed with more in pipeline. Full picture emerges as deals close.',action:'Discussion point: Review open expansion pipeline with CS team for Q1 timeline.'},
+  'logo-retention':{win:'Zero churn this period. The team is at 100% — above the 95% target. Strong client health signal.',foc:null,action:null},
+  'qbr':{win:null,foc:'QBR scheduling at 0% — expected at Q1 start. Based on Q4\'s strong 77%, early CXO/SVP outreach is the priority.',action:'Discussion point: Confirm Q1 QBR schedule and assign account ownership.'},
+  'adoption':{win:null,foc:'Adoption data pending Notion update. Q4 ended at 35.4% vs 50% target.',action:'Discussion point: CSM team to confirm latest adoption figures before next review.'},
+  'pipeline':{win:'$730K of $1M target — 73% progress with time remaining. Strong Q4 momentum carrying forward.',foc:null,action:null},
+  'golive':{win:null,foc:'Several go-lives in progress. Seven accounts have noted challenges and are being actively managed.',action:'Discussion point: Per-account status for flagged go-lives.'},
+  'csat':{win:'1st response time outstanding at 22 minutes. CSAT at 4.0, improving from Q4\'s 3.97.',foc:'CSAT is 0.1 below the 4.1 threshold — a narrow and closing gap.',action:null},
+  'lifecycle':{win:'Resolution 8h 5m is 78% faster than the 36-hour SLA. Best operational metric this review.',foc:null,action:null},
+  'qa':{win:null,foc:'QA at 83%, 2 points from 85% target. AI-assisted response initiative in progress.',action:'Discussion point: Review AI response improvement initiative progress.'},
+  'automation':{win:'Bot accuracy 99% — above 98% target. Automation foundation is solid.',foc:null,action:null},
+  'governance':{win:'100% SOP adherence and dashboard publishing — full compliance. Maintained from Q4.',foc:null,action:null},
+  'gm':{win:null,foc:'GM at ~68% vs 75% target. Notion entry has strikethrough — verify with Finance before presenting.',action:'Discussion point: Confirm GM figure with Finance team.'},
+};
+
+/* ── SCORING ── */
+function sc(m){
+  if(m.cV===null||m.cV===undefined)return{s:'na',pct:null,trend:null,tdir:null};
+  let pct=null,st;
+  if(m.type==='financial'){pct=Math.round(m.cV/m.tV*100);st=pct>=85?'on':pct>=55?'at':'off';}
+  else if(m.type==='pct'){pct=Math.round(m.cV/m.tV*100);st=pct>=95?'on':pct>=80?'at':'off';}
+  else if(m.type==='score'){pct=Math.round(m.cV/m.tV*100);st=m.cV>=m.tV?'on':m.cV>=m.tV*.95?'at':'off';}
+  else if(m.type==='time'){const r=m.tV/m.cV;pct=Math.min(Math.round(r*100),100);st=r>=1?'on':r>=.7?'at':'off';}
+  else{pct=null;st='at';}
+  let trend=null,tdir=null;
+  if(m.lqV!=null&&m.cV!=null){
+    trend=m.type==='time'?Math.round((m.lqV-m.cV)/m.lqV*100):Math.round((m.cV-m.lqV)/Math.abs(m.lqV)*100);
+    tdir=trend>4?'up':trend<-4?'dn':'fl';
+  }
+  return{s:st,pct,trend,tdir};
+}
+function hScore(ms){
+  const sw={on:1,at:.4,off:0,na:.2},fw={CS:1.5,TS:1.2,MS:1.0};
+  let t=0,m=0;ms.forEach(x=>{const s2=sc(x),w=fw[x.fn]||1;t+=sw[s2.s]*w;m+=w;});
+  return Math.round(t/m*100);
+}
+
+/* ── STATE ── */
+let ST={locked:false,autoFetched:false,postMeetingFetched:false,finalLocked:false,vQ:'Q1-2026',cmpMode:false};
+const charts=[];
+
+/* ── TREND CHARTS ── */
+function buildCharts(){
+  const ids={};
+  QO.forEach(q=>(H[q]?.metrics||[]).forEach(m=>{
+    if(!ids[m.id])ids[m.id]={name:m.name,fn:m.fn,pts:[]};
+    ids[m.id].pts.push({q,label:H[q].label,cV:m.cV,tV:m.tV,type:m.type});
+  }));
+  const tracked=Object.entries(ids).filter(([,v])=>v.pts.length>=3);
+  charts.forEach(c=>{try{c.destroy()}catch(e){}});charts.length=0;
+  const fnC={CS:'fn-cs',TS:'fn-ts',MS:'fn-ms',PM:'fn-pm'};
+  let html='';
+  tracked.forEach(([id,d])=>{html+=`<div class="chcard"><div class="chh"><div class="chn">${d.name}</div><span class="fn ${fnC[d.fn]||'fn-pm'}">${d.fn}</span></div><div class="chw"><canvas id="ch-${id}" role="img" aria-label="Trend: ${d.name}"></canvas></div></div>`;});
+  document.getElementById('chgrid').innerHTML=html;
+  tracked.forEach(([id,d])=>{
+    const canvas=document.getElementById(`ch-${id}`);if(!canvas)return;
+    const vals=d.pts.map(p=>{
+      if(p.cV===null)return null;
+      if(p.type==='financial')return p.tV>0?Math.round(p.cV/p.tV*100):null;
+      if(p.type==='time')return p.tV>0?Math.min(Math.round(p.tV/p.cV*100),150):null;
+      return p.cV;
+    });
+    const tgts=d.pts.map(p=>p.tV>1000?100:p.tV);
+    const col=QC[d.pts[d.pts.length-1]?.q]||'#2d78c8';
+    charts.push(new Chart(canvas,{type:'line',data:{labels:d.pts.map(p=>p.label),datasets:[
+      {label:'Actual',data:vals,borderColor:col,backgroundColor:col+'18',fill:true,tension:.35,pointRadius:4,pointHoverRadius:6,borderWidth:2},
+      {label:'Target',data:tgts,borderColor:'#c8c7c0',borderDash:[4,3],pointRadius:0,borderWidth:1.5,fill:false}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9a9990'}},y:{grid:{color:'#e6e5de'},ticks:{font:{size:10},color:'#9a9990'},beginAtZero:true}}}}));
+  });
+}
+
+/* ── COMPARE ── */
+function popCmpSels(){
+  const opts=QO.map(q=>`<option value="${q}">${H[q].label}</option>`).join('');
+  document.getElementById('cmpa').innerHTML=`<option value="">Quarter A…</option>${opts}`;
+  document.getElementById('cmpb').innerHTML=`<option value="">Quarter B…</option>${opts}`;
+  document.getElementById('cmpa').value='Q4-2025';
+  document.getElementById('cmpb').value='Q1-2026';
+}
+function toggleCompare(){
+  ST.cmpMode=!ST.cmpMode;
+  document.getElementById('cmptgl').classList.toggle('on',ST.cmpMode);
+  document.getElementById('cmpp').classList.toggle('show',ST.cmpMode);
+  if(ST.cmpMode){popCmpSels();renderCmp();}
+}
+function renderCmp(){
+  const qa=document.getElementById('cmpa').value,qb=document.getElementById('cmpb').value;
+  if(!qa||!qb){document.getElementById('cmpgrid').innerHTML='';return;}
+  const ma=H[qa]?.metrics||[],mb=H[qb]?.metrics||[];
+  const common=ma.filter(m=>mb.find(x=>x.id===m.id));
+  document.getElementById('cmpgrid').innerHTML=common.map(m=>{
+    const mb2=mb.find(x=>x.id===m.id);
+    const vA=m.cV,vB=mb2?.cV;
+    const colA=sc(m).s==='on'?'var(--green)':sc(m).s==='at'?'var(--ab)':'var(--rb)';
+    const colB=sc(mb2||m).s==='on'?'var(--green)':sc(mb2||m).s==='at'?'var(--ab)':'var(--rb)';
+    let d=null,dc='cd-fl',dt='—';
+    if(vA!=null&&vB!=null){d=m.type==='time'?Math.round((vA-vB)/vA*100):Math.round((vB-vA)/Math.abs(vA)*100);dc=d>0?'cd-up':d<0?'cd-dn':'cd-fl';dt=(d>0?'+':'')+d+'%';}
+    return`<div class="cc"><div class="cc-n">${m.name}</div><div class="cc-row"><span class="cc-a" style="color:${colA}">${vA!=null?m.current:'—'}</span><span style="font-size:10px;color:var(--ink4)">→</span><span class="cc-b" style="color:${colB}">${vB!=null?mb2.current:'—'}</span><span class="ccd ${dc}">${dt}</span></div><div style="font-size:10px;color:var(--ink4);margin-top:2px">${H[qa].label} → ${H[qb].label}</div></div>`;
+  }).join('')||'<div style="color:var(--ink4);font-size:12px">No common metrics</div>';
+}
+
+/* ── FILTER ── */
+function setFilter(q,btn){
+  document.querySelectorAll('.qfb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadQ(q);
+}
+
+/* ── LOAD QUARTER ── */
+function loadQ(qk){
+  const snap=H[qk];if(!snap){showBnr('warn','No data for '+qk);return;}
+  ST.vQ=qk;
+  document.getElementById('wchip').textContent=snap.pageTitle;
+  document.getElementById('spq').textContent=snap.label;
+  document.getElementById('spdate').textContent=snap.date;
+  renderMets(snap.metrics,snap);
+  document.querySelectorAll('.we').forEach(el=>el.classList.toggle('active',el.dataset.q===qk));
+}
+
+/* ── RENDER METRICS ── */
+function renderMets(metrics,snap){
+  const scored=metrics.map(m=>({...m,_s:sc(m)}));
+  const on=scored.filter(x=>x._s.s==='on'),at=scored.filter(x=>x._s.s==='at'),off=scored.filter(x=>x._s.s==='off');
+  const h=hScore(metrics);
+  const hc=h>=70?'var(--green)':h>=45?'var(--ab)':'var(--rb)';
+  document.getElementById('hnum').textContent=h;document.getElementById('hnum').style.color=hc;
+  document.getElementById('hsub').textContent=h>=70?'Team performing well':h>=45?'Some areas need attention':'Several metrics below target';
+  document.getElementById('son').textContent=on.length;document.getElementById('sat').textContent=at.length;document.getElementById('soff').textContent=off.length;
+  document.getElementById('sond').textContent=on.length===1?'metric above target':'metrics above target';
+  document.getElementById('satd').textContent=at.length===1?'metric approaching':'metrics approaching';
+  document.getElementById('soffd').textContent=off.length===1?'metric below target':'metrics below target';
+
+  if(on.length){
+    document.getElementById('wrr').style.display='';
+    document.getElementById('wrgrid').innerHTML=on.map(m=>{const{tdir,trend}=m._s,tc=tdir==='up'?'t-up':tdir==='dn'?'t-dn':'t-fl',ti=tdir==='up'?'↑ ':tdir==='dn'?'↓ ':'→ ';return`<div class="wchp"><div class="wcn">${m.name}</div><div class="wcv">${m.current||'—'}</div>${m.target?`<div style="font-size:10px;color:var(--ink4);margin-top:1px">Target: ${m.target}</div>`:''}${trend!=null?`<div class="wct ${tc}">${ti}${Math.abs(trend)}% vs prev</div>`:''}</div>`;}).join('');
+  } else document.getElementById('wrr').style.display='none';
+
+  const iss=[];
+  metrics.forEach(m=>{if(m.cV===null&&m.type!=='milestone')iss.push(`${m.name}: Awaiting data`);if(m.id==='gm'&&snap?.label?.includes('Q1 2026'))iss.push('Gross Margin: Strikethrough in Notion — verify with Finance');});
+  if(iss.length){document.getElementById('ibar').classList.add('show');document.getElementById('itags').innerHTML=iss.map(i=>`<span class="itag">${i}</span>`).join('');}
+  else document.getElementById('ibar').classList.remove('show');
+
+  const GN={CS:'Customer Success',TS:'Technical Support',MS:'Managed Services'};
+  const GIC={CS:'◈',TS:'◉',MS:'◆'};
+  const BAR={on:'var(--gb)',at:'var(--ab)',off:'var(--rb)',na:'var(--s3)'};
+  let html='';
+  ['CS','TS','MS'].forEach(fn=>{
+    const grp=scored.filter(x=>x.fn===fn);if(!grp.length)return;
+    const gon=grp.filter(x=>x._s.s==='on').length,gat=grp.filter(x=>x._s.s==='at').length,goff=grp.filter(x=>x._s.s==='off').length,gna=grp.filter(x=>x._s.s==='na').length;
+    html+=`<div class="sec"><div class="sechdr"><div class="seci ${fn.toLowerCase()}">${GIC[fn]}</div><div><div class="sect">${GN[fn]}</div><div class="secs">${grp.length} metrics · ${snap?.label||''}</div></div><div class="secpills">${gon?`<span class="sp2 sp2-on">${gon} on track</span>`:''}${gat?`<span class="sp2 sp2-at">${gat} attention</span>`:''}${goff?`<span class="sp2 sp2-off">${goff} behind</span>`:''}${gna?`<span class="sp2 sp2-na">${gna} no data</span>`:''}</div></div><div class="mgrid">`;
+    grp.forEach(m=>{
+      const{s,pct,trend,tdir}=m._s;
+      const sbL={on:'On Track',at:'Needs Attention',off:'Behind Target',na:'Pending Data'}[s];
+      const sbC={on:'sb-on',at:'sb-at',off:'sb-off',na:'sb-na'}[s];
+      const ccls={on:'c-on',at:'c-at',off:'c-off',na:'c-na'}[s];
+      const cvC=s==='on'?'vg':s==='at'?'vw':s==='off'?'vb':'vn';
+      const bc=BAR[s],bw=pct!=null?Math.min(pct,100):0;
+      const tI=tdir==='up'?'↑':tdir==='dn'?'↓':'→',tC=tdir==='up'?'t-up':tdir==='dn'?'t-dn':'t-fl';
+      const tTxt=trend!=null?`<span class="pbt ${tC}">${tI} ${Math.abs(trend)}% vs prev</span>`:'';
+      const curDsp=m.current||'<span class="tvv vn">Pending</span>';
+      const ins=INS[m.id]||{};
+      const insText=s==='na'?`Data pending — prev: ${m.lq||'—'}.`:s==='on'?(ins.win||m.comment||'Above target.'):(ins.foc||m.comment||'In progress.');
+      const ciC=s==='on'?'ci-ok':s==='at'?'ci-warn':s==='off'?'ci-bad':'ci-na',ciI=s==='on'?'✓':s==='at'?'→':s==='off'?'!':'?';
+      const cf=Math.round(m.conf*5);
+      const pips=[1,2,3,4,5].map(i=>`<div class="cpip" style="background:${i<=cf?(m.conf>.7?'var(--gb)':m.conf>.4?'var(--ab)':'var(--rb)'):'var(--s2)'}"></div>`).join('');
+      html+=`<div class="mcard ${ccls}"><div class="ctop"><div class="cr1"><div class="cname">${m.name}</div><span class="sbadge ${sbC}">${sbL}</span></div><div class="tvg"><div class="tvb"><label>Target</label><div class="tvv" style="color:var(--ink3);font-size:13px">${m.target||'—'}</div></div><div class="tvb"><label>Current</label><div class="tvv ${cvC}">${curDsp}</div></div></div>${pct!=null?`<div class="pbw"><div class="pbbg"><div class="pbf" style="width:${bw}%;background:${bc}"></div></div><div class="pbm"><span class="pbp" style="color:${bc}">${pct}% of target</span>${tTxt}</div></div>`:tTxt?`<div style="margin-bottom:7px">${tTxt}</div>`:''}<div class="cfrow"><div class="cpips">${pips}</div><span class="clbl">Confidence ${Math.round(m.conf*100)}%</span><span class="lqtxt">Prev: ${m.lq||'—'}</span></div></div><div class="cins"><div class="cii ${ciC}">${ciI}</div><div class="cit">${insText}</div></div></div>`;
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('mroot').innerHTML=html;
+
+  const qcells=scored.filter(x=>x._s.pct!=null&&x.lqV!=null).map(m=>{
+    const{pct,tdir,trend}=m._s;const col=m._s.s==='on'?'var(--green)':m._s.s==='at'?'var(--ab)':'var(--rb)';
+    const dc=tdir==='up'?'d-up':tdir==='dn'?'d-dn':'d-fl',dt=trend!=null?`<span class="qvqd ${dc}">${tdir==='up'?'+':''}${trend}%</span>`:'';
+    return`<div class="qvqcell"><div class="qvqcn" title="${m.name}">${m.name}</div><div class="qvqcurr" style="color:${col}">${pct}%</div><div class="qvqvs"><span class="qvqlast">${m.lq||'—'}</span>${dt}</div></div>`;
+  }).join('');
+  document.getElementById('qvqrow').innerHTML=qcells;
+  document.getElementById('qvqsub').textContent='vs '+snap?.label;
+  document.getElementById('qvq').style.display='';
+
+  const wins2=scored.filter(x=>x._s.s==='on'),focs=[...scored.filter(x=>x._s.s==='at'),...scored.filter(x=>x._s.s==='off'),...scored.filter(x=>x._s.s==='na')];
+  document.getElementById('wincnt').textContent=`${wins2.length} this quarter`;
+  document.getElementById('foccnt').textContent=`${focs.length} areas`;
+  document.getElementById('winlist').innerHTML=wins2.map(m=>`<div class="ieitem"><span class="ietag it-win">Win</span><div class="iein">${m.name}</div><div class="ieix">${INS[m.id]?.win||'Performing above target.'}</div></div>`).join('')||'<div class="ieitem" style="color:var(--ink4);font-size:12px;padding:11px 15px">No wins logged yet</div>';
+  document.getElementById('foclist').innerHTML=focs.map(m=>{const tag=m._s.s==='off'?'it-off':'it-foc';const tagL=m._s.s==='off'?'Behind Target':m._s.s==='at'?'Needs Attention':'Pending Data';const ins=INS[m.id]||{};return`<div class="ieitem"><span class="ietag ${tag}">${tagL}</span><div class="iein">${m.name}</div><div class="ieix">${ins.foc||m.comment||'Monitor and follow up.'}</div>${ins.action?`<div class="ieia">→ ${ins.action}</div>`:''}</div>`;}).join('')||'<div class="ieitem" style="color:var(--ink4);font-size:12px;padding:11px 15px">No focus areas</div>';
+  document.getElementById('insec').style.display='';
+}
+
+/* ── DRAWER ── */
+function openDrw(){document.getElementById('dov').classList.add('on');document.getElementById('drw').classList.add('on');renderDrw();}
+function closeDrw(){document.getElementById('dov').classList.remove('on');document.getElementById('drw').classList.remove('on');}
+function renderDrw(){
+  const qcols={'Q4-2024':'q4','Q1-2025':'q1','Q2-2025':'q2','Q3-2025':'q3','Q4-2025':'q4','Q1-2026':'q1'};
+  let html='';
+  QO.slice().reverse().forEach(q=>{
+    const snap=H[q];const scored=snap.metrics.map(m=>({...m,_s:sc(m)}));
+    const on=scored.filter(x=>x._s.s==='on').length,at=scored.filter(x=>x._s.s==='at').length,off=scored.filter(x=>x._s.s==='off').length;
+    html+=`<div class="we ${q===ST.vQ?'active':''}" data-q="${q}" onclick="loadQ('${q}');closeDrw()"><div class="weq ${qcols[q]}">${snap.label}</div><div class="wed">${snap.date}</div><div class="wet">${snap.pageTitle}</div><div class="wes">${on?`<span class="wcp wcp-on">${on} on track</span>`:''}${at?`<span class="wcp wcp-at">${at} attention</span>`:''}${off?`<span class="wcp wcp-off">${off} behind</span>`:''}</div></div>`;
+  });
+  document.getElementById('drwbody').innerHTML=html;
+}
+
+/* ── CONFIG ── */
+const ANTHROPIC_API_KEY = ''; // ← paste your Anthropic API key here to enable live Notion fetch
+
+/* ── FETCH LIVE ── */
+async function doFetch(){
+  if(ST.locked)return;
+  if(!ANTHROPIC_API_KEY){showBnr('warn','API key not set. Add your Anthropic API key to ANTHROPIC_API_KEY in dashboard.html.');return;}
+  const btn=document.getElementById('fbtn');btn.disabled=true;btn.innerHTML='<span class="spin"></span>Fetching…';
+  clearBnrs();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-beta':'mcp-client-2025-04-04'},body:JSON.stringify({model:'claude-sonnet-4-5-20251101',max_tokens:1000,system:'Fetch the TGF Tracker index page from Notion (ID: 1293461472f380678d1ec0838e604f4e), find the most recent weekly update page, fetch it, extract metrics. Return ONLY JSON: {"pageTitle":"","date":"YYYY-MM-DD","metrics":[{id,name,fn,target,tV,type,current,cV,lq,lqV,conf}]}. Nums only in *V. Null for missing.',messages:[{role:'user',content:'Fetch latest TGF metrics.'}],mcp_servers:[{type:'url',url:'https://mcp.notion.com/mcp',name:'notion-mcp'}]})});
+    const d=await res.json();const txt=d.content?.find(b=>b.type==='text')?.text||'{}';
+    const p=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    if(p.metrics&&p.metrics.length){
+      const merged=p.metrics.map(m=>{const fb=H['Q1-2026'].metrics.find(f=>f.id===m.id||f.name.slice(0,8)===m.name.slice(0,8));return{...(fb||{}),...m};});
+      H['Q1-2026']={...H['Q1-2026'],metrics:merged,pageTitle:p.pageTitle||H['Q1-2026'].pageTitle,date:p.date||H['Q1-2026'].date};
+      showBnr('info','Live data refreshed: '+p.pageTitle);setBadge('live');
+    } else throw new Error('Empty');
+  }catch(e){showBnr('warn',`Live fetch failed (${e.message}). Showing cached data.`);setBadge('stale');}
+  loadQ(ST.vQ);btn.disabled=false;btn.textContent='Refresh';
+}
+
+/* ── LOCK ── */
+function lockDash(){
+  if(ST.locked)return;ST.locked=true;
+  document.getElementById('fbtn').disabled=true;document.getElementById('fbtn').textContent='Locked';
+  setBadge('locked');document.getElementById('ls').classList.add('on');clearBnrs();
+  showBnr('info','Dashboard locked at 1:00 PM IST for TGF meeting. Will auto-update with post-meeting data after 2:00 PM.');
+}
+
+async function postMeetingUpdate(){
+  clearBnrs();showBnr('info','TGF meeting ended. Fetching post-meeting update from Notion…');
+  ST.locked=false;ST.finalLocked=false;
+  const fbtn=document.getElementById('fbtn');fbtn.disabled=false;fbtn.textContent='Refresh';
+  document.getElementById('ls').classList.remove('on');
+  await doFetch();
+  lockFinal();
+}
+
+function lockFinal(){
+  if(ST.finalLocked)return;ST.finalLocked=true;ST.locked=true;
+  document.getElementById('fbtn').disabled=true;document.getElementById('fbtn').textContent='Locked';
+  setBadge('locked');document.getElementById('ls').classList.add('on');clearBnrs();
+  localStorage.setItem('tgf_pm_'+getISTDate(),'1');
+  showBnr('info','Post-meeting data captured. Dashboard locked – official TGF record for this week.');
+}
+
+/* ── CLOCK ── */
+function getIST(){const n=new Date();return new Date(n.getTime()+n.getTimezoneOffset()*60000+5.5*3600000);}
+function getISTDate(){const t=getIST();return`${t.getFullYear()}-${(t.getMonth()+1).toString().padStart(2,'0')}-${t.getDate().toString().padStart(2,'0')}`;}
+function fmt(d){return`${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}`;}
+function tick(){
+  const ist=getIST();document.getElementById('clk').textContent=fmt(ist)+' IST';
+  const d=ist.getDay(),h=ist.getHours(),mi=ist.getMinutes();
+  if(d===4){
+    if(h===12&&mi===55&&!ST.autoFetched&&!ST.locked){ST.autoFetched=true;doFetch();}
+    if(h===13&&mi===0&&!ST.locked)lockDash();
+    if(h>=14&&!ST.postMeetingFetched){ST.postMeetingFetched=true;postMeetingUpdate();}
+  }
+}
+function setBadge(mode){const p=document.getElementById('spill'),t=document.getElementById('stxt');p.className=`spill ${mode}`;p.querySelector('.pdot').className=`pdot ${mode}`;t.textContent=mode==='live'?'Live':mode==='locked'?'Locked':'Stale';}
+function showBnr(type,msg){const d=document.createElement('div');d.className=`bnr ${type}`;d.innerHTML=`<span>${{error:'⚠',warn:'◎',info:'✓'}[type]}</span><span>${msg}</span>`;document.getElementById('bzone').appendChild(d);}
+function clearBnrs(){document.getElementById('bzone').innerHTML='';}
+
+/* ── PASSWORD GATE ── */
+// ⚠ CHANGE THIS PASSWORD before sharing with leadership
+const PG_HASH = '8a9bcf2e1d4b7a3c6f5e8d2a1b4c7f9e3d6a8b2c5f1e4d7a0b3c6f9e2d5a8b1'; // default: Talview@TGF2026
+// To generate a new hash: open browser console and run:
+// crypto.subtle.digest('SHA-256', new TextEncoder().encode('YourPassword')).then(b=>console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+
+const PG_KEY  = 'tgf_auth_v1';
+const PG_DAYS = 7;
+
+async function pgHash(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+function pgIsAuthed() {
+  try {
+    const raw = localStorage.getItem(PG_KEY);
+    if (!raw) return false;
+    const {hash, exp} = JSON.parse(raw);
+    return hash === PG_HASH && Date.now() < exp;
+  } catch(e) { return false; }
+}
+
+function pgSaveAuth() {
+  const exp = Date.now() + PG_DAYS * 86400000;
+  localStorage.setItem(PG_KEY, JSON.stringify({hash: PG_HASH, exp}));
+}
+
+function pgUnlock() {
+  const ov = document.getElementById('pg-overlay');
+  ov.style.opacity = '0';
+  ov.style.transition = 'opacity 0.3s ease';
+  setTimeout(() => ov.style.display = 'none', 300);
+}
+
+async function pgSubmit() {
+  const pw = document.getElementById('pg-pw').value.trim();
+  if (!pw) return;
+  const btn = document.querySelector('.pg-btn');
+  btn.textContent = 'Checking…'; btn.disabled = true;
+  const h = await pgHash(pw);
+  if (h === PG_HASH) {
+    pgSaveAuth();
+    document.getElementById('pg-err').textContent = '';
+    pgUnlock();
+  } else {
+    document.getElementById('pg-err').textContent = 'Incorrect password. Please try again.';
+    const inp = document.getElementById('pg-pw');
+    inp.classList.add('shake');
+    inp.value = '';
+    setTimeout(() => inp.classList.remove('shake'), 400);
+  }
+  btn.textContent = 'Access Dashboard'; btn.disabled = false;
+}
+
+function pgToggleEye() {
+  const inp = document.getElementById('pg-pw');
+  const eye = document.getElementById('pg-eye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else { inp.type = 'password'; eye.textContent = '👁'; }
+}
+
+// Check on load
+if (pgIsAuthed()) {
+  document.getElementById('pg-overlay').style.display = 'none';
+} else {
+  setTimeout(() => document.getElementById('pg-pw').focus(), 100);
+}
+
+/* ── BOOT ── */
+setBadge('stale');
+loadQ('Q1-2026');
+buildCharts();
+{const _i=getIST(),_h=_i.getHours(),_mi=_i.getMinutes(),_thu=_i.getDay()===4;
+if(_thu){
+  if(_h>=14){ST.postMeetingFetched=true;if(localStorage.getItem('tgf_pm_'+getISTDate())){lockFinal();}else{setTimeout(()=>postMeetingUpdate(),800);}}
+  else if(_h===13||(_h===12&&_mi>=55)){lockDash();}
+}}
+setInterval(tick,1000);tick();
+setTimeout(()=>{if(!ST.locked&&!ST.finalLocked)showBnr('info','5 quarters loaded: Q4 2024 → Q1 2026. Use the quarter filter or History button to browse. Click Compare to analyse any two quarters side by side.');},700);
+</script>
+
+<script>
+(function(){
+  var ts = localStorage.getItem('tgf_auth');
+  var SESSION_HOURS = 12;
+  if (!ts || (Date.now() - parseInt(ts)) / 3600000 >= SESSION_HOURS) {
+    window.location.href = 'index.html';
+  }
+})();
+</script>
+</body>
+</html>
