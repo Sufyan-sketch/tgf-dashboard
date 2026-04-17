@@ -259,7 +259,6 @@ select.csel{font-family:var(--f-h);font-size:12px;padding:6px 10px;border-radius
   <div class="tb-r">
     <div class="clk" id="clk">--:--:-- IST</div>
     <div class="spill stale" id="spill"><span class="pdot"></span><span id="stxt">Loading</span></div>
-    <button class="fbtn" id="fbtn" onclick="doFetch()">Refresh</button>
   </div>
 </div>
 
@@ -466,7 +465,7 @@ function hScore(ms){
 }
 
 /* ── STATE ── */
-let ST={locked:false,autoFetched:false,postMeetingFetched:false,finalLocked:false,vQ:CURRENT_Q,cmpMode:false};
+let ST={locked:false,vQ:CURRENT_Q,cmpMode:false};
 const charts=[];
 
 /* ── TREND CHARTS ── */
@@ -630,51 +629,11 @@ function renderDrw(){
   document.getElementById('drwbody').innerHTML=html;
 }
 
-/* ── CONFIG ── */
-const ANTHROPIC_API_KEY = ''; // ← paste your Anthropic API key here to enable live Notion fetch
-
-/* ── FETCH LIVE ── */
-async function doFetch(){
-  if(ST.locked)return;
-  if(!ANTHROPIC_API_KEY){showBnr('warn','API key not set. Add your Anthropic API key to ANTHROPIC_API_KEY in dashboard.html.');return;}
-  const btn=document.getElementById('fbtn');btn.disabled=true;btn.innerHTML='<span class="spin"></span>Fetching…';
-  clearBnrs();
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-beta':'mcp-client-2025-04-04'},body:JSON.stringify({model:'claude-sonnet-4-5-20251101',max_tokens:1000,system:'Fetch the TGF Tracker index page from Notion (ID: 1293461472f380678d1ec0838e604f4e), find the most recent weekly update page, fetch it, extract metrics. Return ONLY JSON: {"pageTitle":"","date":"YYYY-MM-DD","metrics":[{id,name,fn,target,tV,type,current,cV,lq,lqV,conf}]}. Nums only in *V. Null for missing.',messages:[{role:'user',content:'Fetch latest TGF metrics.'}],mcp_servers:[{type:'url',url:'https://mcp.notion.com/mcp',name:'notion-mcp'}]})});
-    const d=await res.json();const txt=d.content?.find(b=>b.type==='text')?.text||'{}';
-    const p=JSON.parse(txt.replace(/```json|```/g,'').trim());
-    if(p.metrics&&p.metrics.length){
-      const merged=p.metrics.map(m=>{const fb=H['Q1-2026'].metrics.find(f=>f.id===m.id||f.name.slice(0,8)===m.name.slice(0,8));return{...(fb||{}),...m};});
-      H[CURRENT_Q]={...H[CURRENT_Q],metrics:merged,pageTitle:p.pageTitle||H[CURRENT_Q].pageTitle,date:p.date||H[CURRENT_Q].date};
-      showBnr('info','Live data refreshed: '+p.pageTitle);setBadge('live');
-    } else throw new Error('Empty');
-  }catch(e){showBnr('warn',`Live fetch failed (${e.message}). Showing cached data.`);setBadge('stale');}
-  loadQ(ST.vQ);btn.disabled=false;btn.textContent='Refresh';
-}
-
 /* ── LOCK ── */
 function lockDash(){
   if(ST.locked)return;ST.locked=true;
-  document.getElementById('fbtn').disabled=true;document.getElementById('fbtn').textContent='Locked';
   setBadge('locked');document.getElementById('ls').classList.add('on');clearBnrs();
-  showBnr('info','Dashboard locked at 1:00 PM IST for TGF meeting. Will auto-update with post-meeting data after 2:00 PM.');
-}
-
-async function postMeetingUpdate(){
-  clearBnrs();showBnr('info','TGF meeting ended. Fetching post-meeting update from Notion…');
-  ST.locked=false;ST.finalLocked=false;
-  const fbtn=document.getElementById('fbtn');fbtn.disabled=false;fbtn.textContent='Refresh';
-  document.getElementById('ls').classList.remove('on');
-  await doFetch();
-  lockFinal();
-}
-
-function lockFinal(){
-  if(ST.finalLocked)return;ST.finalLocked=true;ST.locked=true;
-  document.getElementById('fbtn').disabled=true;document.getElementById('fbtn').textContent='Locked';
-  setBadge('locked');document.getElementById('ls').classList.add('on');clearBnrs();
-  localStorage.setItem('tgf_pm_'+getISTDate(),'1');
-  showBnr('info','Post-meeting data captured. Dashboard locked – official TGF record for this week.');
+  showBnr('info','Dashboard locked at 1:00 PM IST — data frozen for TGF meeting.');
 }
 
 /* ── CLOCK ── */
@@ -684,11 +643,7 @@ function fmt(d){return`${d.getHours().toString().padStart(2,'0')}:${d.getMinutes
 function tick(){
   const ist=getIST();document.getElementById('clk').textContent=fmt(ist)+' IST';
   const d=ist.getDay(),h=ist.getHours(),mi=ist.getMinutes();
-  if(d===4){
-    if(h===12&&mi===55&&!ST.autoFetched&&!ST.locked){ST.autoFetched=true;doFetch();}
-    if(h===13&&mi===0&&!ST.locked)lockDash();
-    if(h>=14&&!ST.postMeetingFetched){ST.postMeetingFetched=true;postMeetingUpdate();}
-  }
+  if(d===4&&h===13&&mi===0&&!ST.locked)lockDash();
 }
 function setBadge(mode){const p=document.getElementById('spill'),t=document.getElementById('stxt');p.className=`spill ${mode}`;p.querySelector('.pdot').className=`pdot ${mode}`;t.textContent=mode==='live'?'Live':mode==='locked'?'Locked':'Stale';}
 function showBnr(type,msg){const d=document.createElement('div');d.className=`bnr ${type}`;d.innerHTML=`<span>${{error:'⚠',warn:'◎',info:'✓'}[type]}</span><span>${msg}</span>`;document.getElementById('bzone').appendChild(d);}
@@ -767,11 +722,8 @@ if (pgIsAuthed()) {
 setBadge('stale');
 loadQ(CURRENT_Q);
 buildCharts();
-{const _i=getIST(),_h=_i.getHours(),_mi=_i.getMinutes(),_thu=_i.getDay()===4;
-if(_thu){
-  if(_h>=14){ST.postMeetingFetched=true;if(localStorage.getItem('tgf_pm_'+getISTDate())){lockFinal();}else{setTimeout(()=>postMeetingUpdate(),800);}}
-  else if(_h===13||(_h===12&&_mi>=55)){lockDash();}
-}}
+{const _i=getIST(),_h=_i.getHours(),_thu=_i.getDay()===4;
+if(_thu&&(_h>=13))lockDash();}
 setInterval(tick,1000);tick();
 setTimeout(()=>{if(!ST.locked&&!ST.finalLocked)showBnr('info','5 quarters loaded: Q4 2024 → Q1 2026. Use the quarter filter or History button to browse. Click Compare to analyse any two quarters side by side.');},700);
 </script>
