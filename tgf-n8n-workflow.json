@@ -1,0 +1,230 @@
+{
+  "name": "TGF Dashboard – Weekly Notion Sync",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "Click to Sync TGF",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 300],
+      "parameters": {}
+    },
+    {
+      "id": "a1b2c3d4-0002-0002-0002-000000000002",
+      "name": "Search Latest TGF Page in Notion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Notion-Version", "value": "2022-06-28" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"TGF Metric Update\",\n  \"filter\": { \"value\": \"page\", \"property\": \"object\" },\n  \"sort\": { \"direction\": \"descending\", \"timestamp\": \"last_edited_time\" },\n  \"page_size\": 5\n}"
+      },
+      "credentials": {
+        "httpHeaderAuth": { "name": "Notion API" }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0003-0003-0003-000000000003",
+      "name": "Extract Latest Page ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const results = $input.first().json.results || [];\nif (!results.length) throw new Error('No TGF pages found in Notion. Make sure a page with \"TGF Metric Update\" in the title exists and is shared with your integration.');\n\n// Take the most recently edited page\nconst page = results[0];\nconst pageId = page.id.replace(/-/g, '');\nconst pageTitle = page.properties?.title?.title?.[0]?.plain_text ||\n  page.properties?.Name?.title?.[0]?.plain_text ||\n  'TGF Update';\nconst lastEdited = page.last_edited_time;\n\n// Detect quarter from title or date\nfunction detectQuarter(title, editedAt) {\n  // Try Q1/Q2/Q3/Q4 + year pattern in title\n  const qMatch = title.match(/Q([1-4])[-\\s]*(20\\d{2}|\\d{2})/i);\n  if (qMatch) {\n    const y = qMatch[2].length === 2 ? '20' + qMatch[2] : qMatch[2];\n    return `Q${qMatch[1]}-${y}`;\n  }\n  // Try date prefix like \"8-Jan-26\" or \"15-Apr-26\"\n  const months = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};\n  const dateMatch = title.match(/(\\d{1,2})[- ]([A-Za-z]{3})[- ]?(\\d{2,4})/i);\n  if (dateMatch) {\n    const m = months[dateMatch[2].toLowerCase()];\n    const y = parseInt(dateMatch[3].length === 2 ? '20' + dateMatch[3] : dateMatch[3]);\n    if (m && y) return `Q${Math.ceil(m/3)}-${y}`;\n  }\n  // Fall back to edit timestamp\n  const d = new Date(editedAt);\n  const m = d.getMonth() + 1;\n  return `Q${Math.ceil(m/3)}-${d.getFullYear()}`;\n}\n\nconst quarterKey = detectQuarter(pageTitle, lastEdited);\nconst quarterLabel = quarterKey.replace('-', ' ');\n\nconsole.log(`Found page: \"${pageTitle}\" → ${quarterKey}`);\n\nreturn [{ json: { pageId, pageTitle, quarterKey, quarterLabel, lastEdited } }];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0004-0004-0004-000000000004",
+      "name": "Get Page Blocks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.notion.com/v1/blocks/{{ $json.pageId }}/children?page_size=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Notion-Version", "value": "2022-06-28" }
+          ]
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": { "name": "Notion API" }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0005-0005-0005-000000000005",
+      "name": "Find Table Block ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 300],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const blocks = $input.first().json.results || [];\nconst meta = $('Extract Latest Page ID').first().json;\n\n// Find first table block\nconst tableBlock = blocks.find(b => b.type === 'table');\nif (!tableBlock) throw new Error(`No table found in page \"${meta.pageTitle}\". Check the Notion page has a table.`);\n\nconsole.log(`Found table block: ${tableBlock.id}`);\n\nreturn [{ json: {\n  ...meta,\n  tableBlockId: tableBlock.id.replace(/-/g, ''),\n  hasColumnHeader: tableBlock.table?.has_column_header ?? true\n}}];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0006-0006-0006-000000000006",
+      "name": "Get Table Rows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.notion.com/v1/blocks/{{ $json.tableBlockId }}/children?page_size=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Notion-Version", "value": "2022-06-28" }
+          ]
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": { "name": "Notion API" }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0007-0007-0007-000000000007",
+      "name": "Parse Metrics from Table",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1440, 300],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const rows = $input.first().json.results || [];\nconst meta = $('Find Table Block ID').first().json;\n\nif (!rows.length) throw new Error('Table has no rows.');\n\n// ── Helper: extract plain text from a Notion rich-text cell ──\nfunction cellText(cell) {\n  if (!Array.isArray(cell)) return '';\n  return cell.map(rt => rt.plain_text || '').join('').trim();\n}\n\n// ── Helper: check if any part of a cell is strikethrough ──\nfunction isStrikethrough(cell) {\n  if (!Array.isArray(cell)) return false;\n  return cell.some(rt => rt.annotations?.strikethrough === true);\n}\n\n// ── Read header row to map columns ──\nconst headerCells = rows[0]?.table_row?.cells || [];\nconst headers = headerCells.map(c => cellText(c).toLowerCase());\n\nconst COL_FIND = (keywords) => {\n  const idx = headers.findIndex(h => keywords.some(k => h.includes(k)));\n  return idx;\n};\n\nconst COL = {\n  name:    COL_FIND(['milestone', 'name', 'metric', 'feature']) !== -1 ? COL_FIND(['milestone', 'name', 'metric', 'feature']) : 0,\n  fn:      COL_FIND(['function', 'fn', 'team'])                 !== -1 ? COL_FIND(['function', 'fn', 'team'])                 : 1,\n  target:  COL_FIND(['target', 'goal'])                         !== -1 ? COL_FIND(['target', 'goal'])                         : 3,\n  current: COL_FIND(['current', 'actual', 'status', 'metric'])  !== -1 ? COL_FIND(['current', 'actual', 'status', 'metric'])  : 4,\n};\n// Ensure current != name if they resolved to same column\nif (COL.current === COL.name) COL.current = 4;\n\nconsole.log('Column map:', JSON.stringify(COL));\nconsole.log('Headers found:', headers);\n\n// ── Known ID lookup (handles template variations) ──\nconst ID_MAP = [\n  [['net expansion', 'upsell', 'revenue expansion'], 'net-expansion'],\n  [['logo retention', 'client retention', 'churn'], 'logo-retention'],\n  [['qbr', 'quarterly business'], 'qbr'],\n  [['true adoption', 'platform adoption', 'utilization', 'utilisation'], 'adoption'],\n  [['csat', 'customer experience', 'customer satisfaction', 'satisfaction score'], 'csat'],\n  [['ticket lifecycle', 'resolution time', 'lifecycle management', 'follow-up'], 'lifecycle'],\n  [['process adherence', 'qa score', 'quality', 'audit'], 'qa'],\n  [['bot accuracy', 'automation', 'knowledge', 'llm', 'bot performance'], 'automation'],\n  [['operational governance', 'governance', 'sop', 'dashboard publishing'], 'governance'],\n  [['gross margin', 'gm', 'managed services margin'], 'gm'],\n  [['proctor', 'utilisation', 'proctoring'], 'proctor'],\n  [['pipeline', 'expansion pipeline', 'revenue pipeline'], 'pipeline'],\n  [['go live', 'golive', 'go-live', 'sla deployment'], 'golive'],\n];\n\nfunction resolveId(name) {\n  const lower = name.toLowerCase();\n  for (const [keywords, id] of ID_MAP) {\n    if (keywords.some(k => lower.includes(k))) return id;\n  }\n  return lower.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');\n}\n\nfunction detectFn(fnText, name) {\n  const t = fnText.toLowerCase().trim();\n  if (['cs', 'customer success'].includes(t)) return 'CS';\n  if (['ts', 'technical support', 'support'].includes(t)) return 'TS';\n  if (['ms', 'managed services'].includes(t)) return 'MS';\n  const n = name.toLowerCase();\n  if (['csat','resolution','qa','bot','governance','ticket','lifecycle','sop'].some(k => n.includes(k))) return 'TS';\n  if (['gross margin','proctor','gm'].some(k => n.includes(k))) return 'MS';\n  return 'CS';\n}\n\nfunction detectType(targetText, currentText, name) {\n  const all = (targetText + ' ' + currentText + ' ' + name).toLowerCase();\n  if (all.match(/\\$[0-9]/) || all.includes(' k ') || all.includes('pipeline') || all.includes('expansion $')) return 'financial';\n  if (all.match(/[0-9]h[ 0-9m]/) || all.includes('resolution') || all.includes('response time') || all.includes('hours')) return 'time';\n  if (all.includes('csat') || all.includes('score') || (all.match(/[≥≤][\\s]*[0-9]\\.[0-9]/))) return 'score';\n  if (all.includes('go live') || all.includes('integration') || all.includes('milestone') || all.includes('in progress')) return 'milestone';\n  return 'pct';\n}\n\nfunction parseValue(text, type) {\n  if (!text) return null;\n  const clean = text.replace(/~~/g, '').replace(/\\*\\*/g, '').trim();\n  if (!clean || ['', 'pending', 'n/a', 'tbd', 'in progress', '-', '—'].includes(clean.toLowerCase())) return null;\n  // Financial\n  const fin = clean.match(/\\$([0-9,.]+)\\s*([KMB]?)/i);\n  if (fin) {\n    let v = parseFloat(fin[1].replace(/,/g, ''));\n    const m = fin[2].toUpperCase();\n    if (m === 'K') v *= 1000;\n    if (m === 'M') v *= 1000000;\n    if (m === 'B') v *= 1000000000;\n    return Math.round(v);\n  }\n  // Percentage\n  const pct = clean.match(/([0-9.]+)\\s*%/);\n  if (pct) return parseFloat(pct[1]);\n  // Time: 8h 5m → 8.08\n  const time = clean.match(/([0-9]+)\\s*h(?:\\s*([0-9]+)\\s*m)?/i);\n  if (time) return Math.round((parseInt(time[1]) + (time[2] ? parseInt(time[2])/60 : 0)) * 100) / 100;\n  // Score / plain number\n  const num = clean.match(/[≥≤><=~]?\\s*([0-9]+(?:\\.[0-9]+)?)/);\n  if (num) return parseFloat(num[1]);\n  return null;\n}\n\nconst metrics = [];\n\nfor (let i = 1; i < rows.length; i++) {  // skip header row (i=0)\n  const cells = rows[i]?.table_row?.cells || [];\n  const nameRaw = cellText(cells[COL.name] || []);\n  if (!nameRaw || nameRaw.trim() === '') continue;  // skip empty rows\n\n  const name    = nameRaw.replace(/\\*\\*/g, '').split('\\n')[0].trim();\n  const fnRaw   = cellText(cells[COL.fn] || []);\n  const targetT = cellText(cells[COL.target] || []);\n  const currentT = cellText(cells[COL.current] || []);\n  const struck  = isStrikethrough(cells[COL.current] || []);\n\n  const type = detectType(targetT, currentT, name);\n  const tV   = parseValue(targetT, type);\n  const cV   = struck ? null : parseValue(currentT, type);\n  const conf = struck ? 0.3 : (cV === null ? 0 : 0.85);\n\n  metrics.push({\n    id: resolveId(name),\n    name,\n    fn: detectFn(fnRaw, name),\n    target: targetT || '',\n    tV,\n    type,\n    current: struck ? `~~${currentT}~~` : (currentT || null),\n    cV,\n    lq: null,\n    lqV: null,\n    conf\n  });\n}\n\nconsole.log(`Parsed ${metrics.length} metrics from Notion table`);\n\nif (!metrics.length) throw new Error('Parsed 0 metrics — check the table column headers in Notion match expected names.');\n\nreturn [{ json: { ...meta, metrics } }];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0008-0008-0008-000000000008",
+      "name": "Get dashboard.html from GitHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1680, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.github.com/repos/Sufyan-sketch/tgf-dashboard/contents/dashboard.html",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Accept", "value": "application/vnd.github.v3+json" }
+          ]
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": { "name": "GitHub API" }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0009-0009-0009-000000000009",
+      "name": "Inject New Data into HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1920, 300],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const ghFile   = $('Get dashboard.html from GitHub').first().json;\nconst parsed   = $('Parse Metrics from Table').first().json;\n\nconst { quarterKey, quarterLabel, pageTitle, metrics } = parsed;\nconst sha = ghFile.sha;\n\n// Decode current file content\nlet html = Buffer.from(ghFile.content, 'base64').toString('utf8');\n\n// ── Build the lq/lqV values from the previous quarter's data ──\n// Extract existing CURRENT_Q and CURRENT_DATA to use as lq reference\nconst prevQMatch = html.match(/const CURRENT_Q='([^']+)'/);\nconst prevQ = prevQMatch ? prevQMatch[1] : null;\n\n// Pull previous quarter metrics for lq references\nconst prevMetricsMap = {};\nif (prevQ) {\n  // Scan H_HISTORY for last known values of each metric id\n  const histBlock = html.match(/const H_HISTORY=\\{([\\s\\S]*?)\\};\\s*const H=/);\n  if (histBlock) {\n    const allLqMatches = [...histBlock[1].matchAll(/id:'([^']+)'[^}]*cV:(null|[0-9.]+)/g)];\n    // Use the last occurrence of each id (most recent historical quarter)\n    allLqMatches.forEach(m => { prevMetricsMap[m[1]] = m[2] === 'null' ? null : parseFloat(m[2]); });\n  }\n  // Also read current CURRENT_DATA block for lq\n  const curStart = html.indexOf('// <<<TGF_CURRENT_START>>>');\n  const curEnd   = html.indexOf('// <<<TGF_CURRENT_END>>>');\n  if (curStart !== -1 && curEnd !== -1) {\n    const curBlock = html.slice(curStart, curEnd);\n    const curMatches = [...curBlock.matchAll(/id:'([^']+)'[^}]*cV:(null|[0-9.]+)/g)];\n    curMatches.forEach(m => { prevMetricsMap[m[1]] = m[2] === 'null' ? null : parseFloat(m[2]); });\n  }\n}\n\nconst prevQLabel = prevQ ? prevQ.replace('-', ' ') : 'prev';\n\n// Enrich metrics with lq/lqV from previous quarter\nconst enrichedMetrics = metrics.map(m => ({\n  ...m,\n  lq: prevMetricsMap[m.id] != null ? `${prevMetricsMap[m.id]} (${prevQLabel})` : null,\n  lqV: prevMetricsMap[m.id] ?? null\n}));\n\n// ── Build JS literal for each metric ──\nfunction esc(s) { return String(s || '').replace(/\\\\/g, '\\\\\\\\').replace(/'/g, \"\\\\'\"); }\nfunction metricJS(m) {\n  return `  {id:'${esc(m.id)}',name:'${esc(m.name)}',fn:'${m.fn}',target:'${esc(m.target)}',tV:${m.tV ?? 'null'},type:'${m.type}',current:${m.current === null ? 'null' : `'${esc(m.current)}'`},cV:${m.cV ?? 'null'},lq:${m.lq ? `'${esc(m.lq)}'` : 'null'},lqV:${m.lqV ?? 'null'},conf:${m.conf}}`;\n}\n\nconst metricsBlock = enrichedMetrics.map(metricJS).join(',\\n');\nconst dateStr = new Date().toISOString().split('T')[0];\n\nconst newCurrentBlock =\n`// <<<TGF_CURRENT_START>>>\nconst CURRENT_Q='${quarterKey}';\nconst CURRENT_DATA={label:'${quarterLabel}',date:'${dateStr}',pageTitle:'${esc(pageTitle)}',metrics:[\\n${metricsBlock},\\n]};\n// <<<TGF_CURRENT_END>>>`;\n\n// ── Replace between markers ──\nconst startMarker = '// <<<TGF_CURRENT_START>>>';\nconst endMarker   = '// <<<TGF_CURRENT_END>>>';\nconst startIdx = html.indexOf(startMarker);\nconst endIdx   = html.indexOf(endMarker);\nif (startIdx === -1 || endIdx === -1) throw new Error('TGF data markers not found in dashboard.html');\n\nconst updatedHtml = html.slice(0, startIdx) + newCurrentBlock + html.slice(endIdx + endMarker.length);\n\n// ── Also update loadQ boot call to point at new quarter ──\nconst finalHtml = updatedHtml.replace(\n  /loadQ\\(CURRENT_Q\\)/g,\n  'loadQ(CURRENT_Q)'\n);\n\nconsole.log(`Updated dashboard: ${quarterKey} with ${enrichedMetrics.length} metrics`);\n\nreturn [{ json: {\n  content: Buffer.from(finalHtml).toString('base64'),\n  sha,\n  quarterKey,\n  metricsCount: enrichedMetrics.length,\n  commitMessage: `chore: sync ${quarterKey} metrics from Notion (${dateStr})`\n}}];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0010-0010-0010-000000000010",
+      "name": "Push Updated File to GitHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2160, 300],
+      "parameters": {
+        "method": "PUT",
+        "url": "https://api.github.com/repos/Sufyan-sketch/tgf-dashboard/contents/dashboard.html",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Accept", "value": "application/vnd.github.v3+json" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message\": \"{{ $json.commitMessage }}\",\n  \"content\": \"{{ $json.content }}\",\n  \"sha\": \"{{ $json.sha }}\",\n  \"branch\": \"main\"\n}"
+      },
+      "credentials": {
+        "httpHeaderAuth": { "name": "GitHub API" }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0011-0011-0011-000000000011",
+      "name": "Done",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2400, 300],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "done-1",
+              "name": "status",
+              "value": "=✅ TGF Dashboard updated: {{ $('Inject New Data into HTML').first().json.quarterKey }} · {{ $('Inject New Data into HTML').first().json.metricsCount }} metrics pushed to GitHub Pages",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Click to Sync TGF": {
+      "main": [[{ "node": "Search Latest TGF Page in Notion", "type": "main", "index": 0 }]]
+    },
+    "Search Latest TGF Page in Notion": {
+      "main": [[{ "node": "Extract Latest Page ID", "type": "main", "index": 0 }]]
+    },
+    "Extract Latest Page ID": {
+      "main": [[{ "node": "Get Page Blocks", "type": "main", "index": 0 }]]
+    },
+    "Get Page Blocks": {
+      "main": [[{ "node": "Find Table Block ID", "type": "main", "index": 0 }]]
+    },
+    "Find Table Block ID": {
+      "main": [[{ "node": "Get Table Rows", "type": "main", "index": 0 }]]
+    },
+    "Get Table Rows": {
+      "main": [[{ "node": "Parse Metrics from Table", "type": "main", "index": 0 }]]
+    },
+    "Parse Metrics from Table": {
+      "main": [[{ "node": "Get dashboard.html from GitHub", "type": "main", "index": 0 }]]
+    },
+    "Get dashboard.html from GitHub": {
+      "main": [[{ "node": "Inject New Data into HTML", "type": "main", "index": 0 }]]
+    },
+    "Inject New Data into HTML": {
+      "main": [[{ "node": "Push Updated File to GitHub", "type": "main", "index": 0 }]]
+    },
+    "Push Updated File to GitHub": {
+      "main": [[{ "node": "Done", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "TGF Dashboard" }],
+  "meta": { "templateCredsSetupCompleted": false }
+}

@@ -343,26 +343,8 @@ select.csel{font-family:var(--f-h);font-size:12px;padding:6px 10px;border-radius
 </div>
 
 <script>
-/* ═══════════ CURRENT WEEK — replaced by n8n every Thursday ═══════════ */
-// <<<TGF_CURRENT_START>>>
-const CURRENT_Q='Q1-2026';
-const CURRENT_DATA={label:'Q1 2026',date:'2026-01-08',pageTitle:'8-Jan-26 Q1 TGF (Current)',metrics:[
-  {id:'net-expansion',name:'Net Expansion',fn:'CS',target:'$350K',tV:350000,type:'financial',current:'$5K',cV:5000,lq:'$433K (Q4)',lqV:433000,conf:0.6},
-  {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'95%',tV:95,type:'pct',current:'100%',cV:100,lq:'95.4% (Q4)',lqV:95.4,conf:1},
-  {id:'qbr',name:'QBR Coverage',fn:'CS',target:'60%',tV:60,type:'pct',current:'0%',cV:0,lq:'77% (Q4)',lqV:77,conf:0.8},
-  {id:'adoption',name:'True Adoption',fn:'CS',target:'50%',tV:50,type:'pct',current:null,cV:null,lq:'35.4% (Q4)',lqV:35.4,conf:0},
-  {id:'pipeline',name:'Expansion Pipeline',fn:'CS',target:'$1M',tV:1000000,type:'financial',current:'$730K',cV:730000,lq:'$4.48M (Q4)',lqV:4480000,conf:1},
-  {id:'golive',name:'Go Live SLA',fn:'CS',target:'100%',tV:100,type:'milestone',current:'In Progress',cV:null,lq:'100% (Q4)',lqV:100,conf:0.5},
-  {id:'csat',name:'CSAT',fn:'TS',target:'≥ 4.1',tV:4.1,type:'score',current:'4.0',cV:4.0,lq:'3.97 (Q4)',lqV:3.97,conf:0.95},
-  {id:'lifecycle',name:'Resolution Time',fn:'TS',target:'≤ 36h',tV:36,type:'time',current:'8h 5m',cV:8.08,lq:'10h 45m (Q4)',lqV:10.75,conf:1},
-  {id:'qa',name:'QA Score',fn:'TS',target:'≥ 85%',tV:85,type:'pct',current:'83%',cV:83,lq:'85% (Q4)',lqV:85,conf:0.9},
-  {id:'automation',name:'Bot Accuracy',fn:'TS',target:'≥ 98%',tV:98,type:'pct',current:'99%',cV:99,lq:'99% (Q4)',lqV:99,conf:0.7},
-  {id:'governance',name:'Operational Governance',fn:'TS',target:'100%',tV:100,type:'pct',current:'100%',cV:100,lq:'100% (Q4)',lqV:100,conf:1},
-  {id:'gm',name:'Gross Margin',fn:'MS',target:'75%',tV:75,type:'pct',current:'~68%',cV:68,lq:'69% (Q4)',lqV:69,conf:0.65},
-]};
-// <<<TGF_CURRENT_END>>>
-/* ═══════════ HISTORICAL DATA — do not edit manually ═══════════ */
-const H_HISTORY={
+/* ═══════════ HISTORICAL DATA — 5 quarters from Notion ═══════════ */
+const H={
   'Q4-2024':{label:'Q4 2024',date:'2024-12-31',pageTitle:'31-Dec-24 End of Quarter',metrics:[
     {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'100%',tV:100,type:'pct',current:'95%',cV:95,lq:'—',lqV:null,conf:1},
     {id:'revenue-expansion',name:'Revenue Expansion',fn:'CS',target:'$200K',tV:200000,type:'financial',current:'$306K (153%)',cV:305892,lq:'—',lqV:null,conf:1},
@@ -421,12 +403,23 @@ const H_HISTORY={
     {id:'pipeline',name:'Expansion Pipeline',fn:'CS',target:'$1M',tV:1000000,type:'financial',current:'$4.48M (448%)',cV:4480000,lq:'$1.1M (Q3)',lqV:1100000,conf:1},
     {id:'golive',name:'Go Live SLA',fn:'CS',target:'100%',tV:100,type:'pct',current:'100%',cV:100,lq:'78.5% (Q3)',lqV:78.5,conf:1},
   ]},
+  'Q1-2026':{label:'Q1 2026',date:'2026-01-08',pageTitle:'8-Jan-26 Q1 TGF (Current)',metrics:[
+    {id:'net-expansion',name:'Net Expansion',fn:'CS',target:'$350K',tV:350000,type:'financial',current:'$5K',cV:5000,lq:'$433K (Q4)',lqV:433000,conf:0.6},
+    {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'95%',tV:95,type:'pct',current:'100%',cV:100,lq:'95.4% (Q4)',lqV:95.4,conf:1},
+    {id:'qbr',name:'QBR Coverage',fn:'CS',target:'60%',tV:60,type:'pct',current:'0%',cV:0,lq:'77% (Q4)',lqV:77,conf:0.8},
+    {id:'adoption',name:'True Adoption',fn:'CS',target:'50%',tV:50,type:'pct',current:null,cV:null,lq:'35.4% (Q4)',lqV:35.4,conf:0},
+    {id:'pipeline',name:'Expansion Pipeline',fn:'CS',target:'$1M',tV:1000000,type:'financial',current:'$730K',cV:730000,lq:'$4.48M (Q4)',lqV:4480000,conf:1},
+    {id:'golive',name:'Go Live SLA',fn:'CS',target:'100%',tV:100,type:'milestone',current:'In Progress',cV:null,lq:'100% (Q4)',lqV:100,conf:0.5},
+    {id:'csat',name:'CSAT',fn:'TS',target:'≥ 4.1',tV:4.1,type:'score',current:'4.0',cV:4.0,lq:'3.97 (Q4)',lqV:3.97,conf:0.95},
+    {id:'lifecycle',name:'Resolution Time',fn:'TS',target:'≤ 36h',tV:36,type:'time',current:'8h 5m',cV:8.08,lq:'10h 45m (Q4)',lqV:10.75,conf:1},
+    {id:'qa',name:'QA Score',fn:'TS',target:'≥ 85%',tV:85,type:'pct',current:'83%',cV:83,lq:'85% (Q4)',lqV:85,conf:0.9},
+    {id:'automation',name:'Bot Accuracy',fn:'TS',target:'≥ 98%',tV:98,type:'pct',current:'99%',cV:99,lq:'99% (Q4)',lqV:99,conf:0.7},
+    {id:'governance',name:'Operational Governance',fn:'TS',target:'100%',tV:100,type:'pct',current:'100%',cV:100,lq:'100% (Q4)',lqV:100,conf:1},
+    {id:'gm',name:'Gross Margin',fn:'MS',target:'75%',tV:75,type:'pct',current:'~68%',cV:68,lq:'69% (Q4)',lqV:69,conf:0.65},
+  ]},
 };
-const H={...H_HISTORY,[CURRENT_Q]:CURRENT_DATA};
-const QO=Object.keys(H);
-const QC_MAP={'Q4-2024':'#1a4a7a','Q1-2025':'#2d78c8','Q2-2025':'#1d6b3e','Q3-2025':'#d4820a','Q4-2025':'#6b48d4','Q1-2026':'#c73333'};
-const QC_PAL=['#1a4a7a','#2d78c8','#1d6b3e','#d4820a','#6b48d4','#c73333','#2d9a5a','#e05c00','#0e7490'];
-const QC=Object.fromEntries(QO.map((q,i)=>[q,QC_MAP[q]||QC_PAL[i%QC_PAL.length]]));
+const QO=['Q4-2024','Q1-2025','Q2-2025','Q3-2025','Q4-2025','Q1-2026'];
+const QC={'Q4-2024':'#1a4a7a','Q1-2025':'#2d78c8','Q2-2025':'#1d6b3e','Q3-2025':'#d4820a','Q4-2025':'#6b48d4','Q1-2026':'#c73333'};
 
 const INS={
   'net-expansion':{win:null,foc:'Q1 is early. Current activity shows $5K confirmed with more in pipeline. Full picture emerges as deals close.',action:'Discussion point: Review open expansion pipeline with CS team for Q1 timeline.'},
@@ -466,7 +459,7 @@ function hScore(ms){
 }
 
 /* ── STATE ── */
-let ST={locked:false,autoFetched:false,postMeetingFetched:false,finalLocked:false,vQ:CURRENT_Q,cmpMode:false};
+let ST={locked:false,autoFetched:false,postMeetingFetched:false,finalLocked:false,vQ:'Q1-2026',cmpMode:false};
 const charts=[];
 
 /* ── TREND CHARTS ── */
@@ -645,7 +638,7 @@ async function doFetch(){
     const p=JSON.parse(txt.replace(/```json|```/g,'').trim());
     if(p.metrics&&p.metrics.length){
       const merged=p.metrics.map(m=>{const fb=H['Q1-2026'].metrics.find(f=>f.id===m.id||f.name.slice(0,8)===m.name.slice(0,8));return{...(fb||{}),...m};});
-      H[CURRENT_Q]={...H[CURRENT_Q],metrics:merged,pageTitle:p.pageTitle||H[CURRENT_Q].pageTitle,date:p.date||H[CURRENT_Q].date};
+      H['Q1-2026']={...H['Q1-2026'],metrics:merged,pageTitle:p.pageTitle||H['Q1-2026'].pageTitle,date:p.date||H['Q1-2026'].date};
       showBnr('info','Live data refreshed: '+p.pageTitle);setBadge('live');
     } else throw new Error('Empty');
   }catch(e){showBnr('warn',`Live fetch failed (${e.message}). Showing cached data.`);setBadge('stale');}
@@ -765,7 +758,7 @@ if (pgIsAuthed()) {
 
 /* ── BOOT ── */
 setBadge('stale');
-loadQ(CURRENT_Q);
+loadQ('Q1-2026');
 buildCharts();
 {const _i=getIST(),_h=_i.getHours(),_mi=_i.getMinutes(),_thu=_i.getDay()===4;
 if(_thu){
