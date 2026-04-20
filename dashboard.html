@@ -126,7 +126,7 @@ select.csel{font-family:var(--f-h);font-size:12px;padding:6px 10px;border-radius
 .chn{font-size:12px;font-weight:600;color:var(--ink)}
 .fn{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:99px;border:1px solid}
 .fn-cs{background:var(--bl);color:var(--blue);border-color:var(--bm)}.fn-ts{background:var(--gl);color:var(--green);border-color:var(--gm)}.fn-ms{background:var(--pul);color:var(--pu);border-color:var(--pum)}.fn-pm{background:var(--gryl);color:var(--grey);border-color:var(--grym)}
-.chw{position:relative;height:120px}
+.chw{position:relative;height:145px}
 /* section */
 .sec{margin-top:26px}
 .sechdr{display:flex;align-items:center;gap:11px;padding-bottom:11px;border-bottom:2px solid var(--s2);margin-bottom:13px}
@@ -503,7 +503,8 @@ function buildCharts(){
     const col=QC[d.pts[d.pts.length-1]?.q]||'#2d78c8';
     charts.push(new Chart(canvas,{type:'line',data:{labels:d.pts.map(p=>p.label),datasets:[
       {label:'Actual',data:vals,borderColor:col,backgroundColor:col+'18',fill:true,tension:.35,pointRadius:4,pointHoverRadius:6,borderWidth:2,
-       datalabels:{display:true,color:col,font:{size:9,weight:'600'},anchor:'center',align:'top',offset:6,
+       datalabels:{display:true,color:col,font:{size:9,weight:'600'},anchor:'center',clamp:true,offset:6,
+         align:(ctx)=>{const nd=ctx.dataset.data.filter(v=>v!=null);return nd.length&&ctx.dataset.data[ctx.dataIndex]===Math.max(...nd)?'bottom':'top';},
          formatter:(_,ctx)=>fmtDL(d.pts[ctx.dataIndex]?.cV,d.pts[ctx.dataIndex]?.type)}},
       {label:'Target',data:tgts,borderColor:'#c8c7c0',borderDash:[4,3],pointRadius:0,borderWidth:1.5,fill:false,
        datalabels:{display:false}}
