@@ -725,7 +725,7 @@ buildCharts();
 {const _i=getIST(),_h=_i.getHours(),_thu=_i.getDay()===4;
 if(_thu&&(_h>=13))lockDash();}
 setInterval(tick,1000);tick();
-setTimeout(()=>{if(!ST.locked&&!ST.finalLocked)showBnr('info','5 quarters loaded: Q4 2024 → Q1 2026. Use the quarter filter or History button to browse. Click Compare to analyse any two quarters side by side.');},700);
+setTimeout(()=>{if(!ST.locked)showBnr('info',`${QO.length} quarters loaded: ${H[QO[0]].label} → ${H[QO[QO.length-1]].label}. Use the quarter filter or History button to browse. Click Compare to analyse any two quarters side by side.`);},700);
 </script>
 
 </body>
