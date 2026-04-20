@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;1,400;1,500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
 :root{
   --bg:#f5f4f0;--s0:#fff;--s1:#f2f1ec;--s2:#e6e5de;--s3:#d0cfc7;
@@ -342,6 +343,7 @@ select.csel{font-family:var(--f-h);font-size:12px;padding:6px 10px;border-radius
 </div>
 
 <script>
+Chart.register(ChartDataLabels);
 /* ═══════════ CURRENT WEEK — replaced by n8n every Thursday ═══════════ */
 // <<<TGF_CURRENT_START>>>
 const CURRENT_Q='Q1-2026';
@@ -469,6 +471,14 @@ let ST={locked:false,vQ:CURRENT_Q,cmpMode:false};
 const charts=[];
 
 /* ── TREND CHARTS ── */
+function fmtDL(cV,type){
+  if(cV===null||cV===undefined)return'';
+  if(type==='financial'){if(Math.abs(cV)>=1000000)return'$'+(cV/1000000).toFixed(1)+'M';if(Math.abs(cV)>=1000)return'$'+Math.round(cV/1000)+'K';return'$'+cV;}
+  if(type==='pct')return cV+'%';
+  if(type==='score')return Number(cV).toFixed(1);
+  if(type==='time')return cV<1?Math.round(cV*60)+'m':Number(cV).toFixed(1)+'h';
+  return'';
+}
 function buildCharts(){
   const ids={};
   QO.forEach(q=>(H[q]?.metrics||[]).forEach(m=>{
@@ -492,9 +502,12 @@ function buildCharts(){
     const tgts=d.pts.map(p=>p.tV>1000?100:p.tV);
     const col=QC[d.pts[d.pts.length-1]?.q]||'#2d78c8';
     charts.push(new Chart(canvas,{type:'line',data:{labels:d.pts.map(p=>p.label),datasets:[
-      {label:'Actual',data:vals,borderColor:col,backgroundColor:col+'18',fill:true,tension:.35,pointRadius:4,pointHoverRadius:6,borderWidth:2},
-      {label:'Target',data:tgts,borderColor:'#c8c7c0',borderDash:[4,3],pointRadius:0,borderWidth:1.5,fill:false}
-    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9a9990'}},y:{grid:{color:'#e6e5de'},ticks:{font:{size:10},color:'#9a9990'},beginAtZero:true}}}}));
+      {label:'Actual',data:vals,borderColor:col,backgroundColor:col+'18',fill:true,tension:.35,pointRadius:4,pointHoverRadius:6,borderWidth:2,
+       datalabels:{display:true,color:col,font:{size:9,weight:'600'},anchor:'center',align:'top',offset:6,
+         formatter:(_,ctx)=>fmtDL(d.pts[ctx.dataIndex]?.cV,d.pts[ctx.dataIndex]?.type)}},
+      {label:'Target',data:tgts,borderColor:'#c8c7c0',borderDash:[4,3],pointRadius:0,borderWidth:1.5,fill:false,
+       datalabels:{display:false}}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9a9990'}},y:{grid:{color:'#e6e5de'},ticks:{font:{size:10},color:'#9a9990'},beginAtZero:true}}}}));
   });
 }
 
