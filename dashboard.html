@@ -276,7 +276,6 @@ select.csel{font-family:var(--f-h);font-size:12px;padding:6px 10px;border-radius
   <div class="fbar">
     <span class="flbl">Quarter</span>
     <div class="qfbtns" id="qfbtns">
-      <button class="qfb" onclick="setFilter('Q4-2024',this)">Q4 2024</button>
       <button class="qfb" onclick="setFilter('Q1-2025',this)">Q1 2025</button>
       <button class="qfb" onclick="setFilter('Q2-2025',this)">Q2 2025</button>
       <button class="qfb" onclick="setFilter('Q3-2025',this)">Q3 2025</button>
@@ -312,7 +311,7 @@ select.csel{font-family:var(--f-h);font-size:12px;padding:6px 10px;border-radius
   </div>
 
   <div class="trsec" id="trsec">
-    <div class="tr-h"><div class="tr-t">Performance Trends</div><div class="tr-s">Quarter-end results · Q4 2024 → Q1 2026</div></div>
+    <div class="tr-h"><div class="tr-t">Performance Trends</div><div class="tr-s">Quarter-end results · Q1 2025 → present</div></div>
     <div class="chgrid" id="chgrid"></div>
   </div>
 
@@ -337,7 +336,7 @@ select.csel{font-family:var(--f-h);font-size:12px;padding:6px 10px;border-radius
   </div>
 
   <div class="dash-footer">
-    <div class="df-l">Talview TGF · Thursday Weekly Review · Q4 2024 – Q1 2026 history loaded</div>
+    <div class="df-l">Talview TGF · Thursday Weekly Review · Q1 2025 – present history loaded</div>
     <div class="df-r" id="dfr">Auto-fetch 1:05 PM IST · Hard lock 1:30 PM IST</div>
   </div>
 </div>
@@ -364,17 +363,6 @@ const CURRENT_DATA={label:'Q1 2026',date:'2026-01-08',pageTitle:'8-Jan-26 Q1 TGF
 // <<<TGF_CURRENT_END>>>
 /* ═══════════ HISTORICAL DATA — do not edit manually ═══════════ */
 const H_HISTORY={
-  'Q4-2024':{label:'Q4 2024',date:'2024-12-31',pageTitle:'31-Dec-24 End of Quarter',metrics:[
-    {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'100%',tV:100,type:'pct',current:'95%',cV:95,lq:'—',lqV:null,conf:1},
-    {id:'revenue-expansion',name:'Revenue Expansion',fn:'CS',target:'$200K',tV:200000,type:'financial',current:'$306K (153%)',cV:305892,lq:'—',lqV:null,conf:1},
-    {id:'qbr',name:'QBR Coverage',fn:'CS',target:'20 QBRs',tV:20,type:'pct',current:'25 QBRs (125%)',cV:125,lq:'—',lqV:null,conf:1},
-    {id:'gm',name:'Gross Margin',fn:'MS',target:'75%',tV:75,type:'pct',current:'73%',cV:73,lq:'—',lqV:null,conf:0.9},
-    {id:'proctor',name:'Proctor Utilisation',fn:'MS',target:'85%',tV:85,type:'pct',current:'90%',cV:90,lq:'—',lqV:null,conf:1},
-    {id:'ticket-sla',name:'Ticket SLA',fn:'TS',target:'100%',tV:100,type:'pct',current:'94.3%',cV:94.3,lq:'—',lqV:null,conf:1},
-    {id:'qa',name:'Quality of Resolution',fn:'TS',target:'90%',tV:90,type:'pct',current:'88%',cV:88,lq:'—',lqV:null,conf:1},
-    {id:'automation',name:'Automation Rate',fn:'TS',target:'70%',tV:70,type:'pct',current:'70%',cV:70,lq:'—',lqV:null,conf:1},
-    {id:'golive',name:'Go Live SLA',fn:'CS',target:'90%',tV:90,type:'pct',current:'0% (in progress)',cV:0,lq:'—',lqV:null,conf:0.3},
-  ]},
   'Q1-2025':{label:'Q1 2025',date:'2025-03-21',pageTitle:'21-Mar-25 Q1 2025 Retrospection',metrics:[
     {id:'net-expansion',name:'Net Expansion',fn:'CS',target:'$250K',tV:250000,type:'financial',current:'$21.7K (8.6%)',cV:21711,lq:'$306K (Q4)',lqV:305892,conf:1},
     {id:'logo-retention',name:'Logo Retention',fn:'CS',target:'95%',tV:95,type:'pct',current:'100%',cV:100,lq:'95% (Q4)',lqV:95,conf:1},
@@ -425,7 +413,7 @@ const H_HISTORY={
 };
 const H={...H_HISTORY,[CURRENT_Q]:CURRENT_DATA};
 const QO=Object.keys(H);
-const QC_MAP={'Q4-2024':'#1a4a7a','Q1-2025':'#2d78c8','Q2-2025':'#1d6b3e','Q3-2025':'#d4820a','Q4-2025':'#6b48d4','Q1-2026':'#c73333'};
+const QC_MAP={'Q1-2025':'#2d78c8','Q2-2025':'#1d6b3e','Q3-2025':'#d4820a','Q4-2025':'#6b48d4','Q1-2026':'#c73333'};
 const QC_PAL=['#1a4a7a','#2d78c8','#1d6b3e','#d4820a','#6b48d4','#c73333','#2d9a5a','#e05c00','#0e7490'];
 const QC=Object.fromEntries(QO.map((q,i)=>[q,QC_MAP[q]||QC_PAL[i%QC_PAL.length]]));
 
@@ -633,7 +621,7 @@ function renderMets(metrics,snap){
 function openDrw(){document.getElementById('dov').classList.add('on');document.getElementById('drw').classList.add('on');renderDrw();}
 function closeDrw(){document.getElementById('dov').classList.remove('on');document.getElementById('drw').classList.remove('on');}
 function renderDrw(){
-  const qcols={'Q4-2024':'q4','Q1-2025':'q1','Q2-2025':'q2','Q3-2025':'q3','Q4-2025':'q4','Q1-2026':'q1'};
+  const qcols={'Q1-2025':'q1','Q2-2025':'q2','Q3-2025':'q3','Q4-2025':'q4','Q1-2026':'q1'};
   let html='';
   QO.slice().reverse().forEach(q=>{
     const snap=H[q];const scored=snap.metrics.map(m=>({...m,_s:sc(m)}));
